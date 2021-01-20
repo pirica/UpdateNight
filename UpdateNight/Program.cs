@@ -84,13 +84,13 @@ namespace UpdateNight
                     Console.ForegroundColor = ConsoleColor.White;
                     Console.WriteLine();
                     Grabbers.MappingsGrabber.mapping = mapping;
-                    Grabbers.MappingsGrabber.Grab();
+                    await Grabbers.MappingsGrabber.Grab();
                 }
                 if (!newMapping) Thread.Sleep(1000);
             }
             #endregion
             
-            Start = DateTime.UtcNow;
+            Start = DateTime.Now;
 
             #region Grabbers and files
             Manifest manifest = await Grabbers.ManifestGrabber.Grab();
@@ -141,7 +141,7 @@ namespace UpdateNight
                 .Select(c => c.Canvas).ToArray(), "All");
             #endregion
 
-            End = DateTime.UtcNow;
+            End = DateTime.Now;
             TimeSpan dur = End.Subtract(Start);
             Console.WriteLine();
             Global.Exit(0, $"Finished Update Night in {dur.ToString("T").Replace(",", ".")}");
