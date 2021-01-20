@@ -130,14 +130,13 @@ namespace UpdateNight
                     Global.Print(ConsoleColor.Red, "Error", $"Could not get the asset for {path.Split("/").Last()}");
                     continue;
                 }
-
+                
                 Cosmetic cosmetic = new Cosmetic(asset, path);
                 Image.Cosmetic(cosmetic);
                 CosmeticsData.Add(cosmetic);
             }
 
             Console.WriteLine();
-
             List<string> types = CosmeticsData.Select(c => c.Type).ToList();
             types = types.Distinct().ToList();
             foreach (string type in types)
@@ -147,11 +146,11 @@ namespace UpdateNight
                             .ThenBy(c => Source.Utils.BuildRarity(c.Rarity)).ThenBy(c => c.Type).ToList();
                 Image.Collage(data.Select(c => c.Canvas).ToArray(), type);
             }
-
+            
             Image.Collage(CosmeticsData.OrderBy(c => c.Name).ThenBy(c => c.Rarity)
                 .ThenBy(c => Source.Utils.BuildRarity(c.Rarity)).ThenBy(c => c.Type)
                 .Select(c => c.Canvas).ToArray(), "All");
-
+            
             Console.WriteLine();
 
             return Task.CompletedTask;
@@ -166,7 +165,7 @@ namespace UpdateNight
                 return Task.CompletedTask;
             }
 
-            if (!asset.ExportTypes.Any(e => e.String == "Texture2D"))
+            if (asset.ExportTypes.All(e => e.String != "Texture2D"))
             {
                 Global.Print(ConsoleColor.Red, "Error", "Map asset does not have a Texture2D");
                 return Task.CompletedTask;

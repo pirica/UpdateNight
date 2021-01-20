@@ -98,38 +98,39 @@ namespace UpdateNight.Source
         public static void Collage(List<SKImage> images, string name) => Collage(images.ToArray(), name);
         public static void Collage(SKImage[] images, string name)
         {
-            double width = Math.Ceiling(Math.Sqrt(images.Length));
-            double height = Math.Ceiling(images.Length / width);
-
-            SKImageInfo info = new SKImageInfo((int)width * 1024, (int)height * 1024);
-            SKSurface surface = SKSurface.Create(info);
-            SKCanvas canvas = surface.Canvas;
-
-            // canvas.Clear(SKColors.DarkSlateGray);
-
-            int x = 0;
-            int y = 0;
-            int count = 0;
-            foreach (SKImage image in images)
+            if (images != null)
             {
-                canvas.DrawImage(image, new SKPoint(x, y));
+                double width = Math.Ceiling(Math.Sqrt(images.Length));
+                double height = Math.Ceiling(images.Length / width);
 
-                x += 1024;
-                if (info.Width <= x) // check if `x` is out of the image
+                SKImageInfo info = new SKImageInfo((int)width * 1024, (int)height * 1024);
+                SKSurface surface = SKSurface.Create(info);
+                SKCanvas canvas = surface.Canvas;
+                
+                int x = 0;
+                int y = 0;
+                int count = 0;
+                foreach (SKImage image in images)
                 {
-                    x = 0;
-                    y += 1024;
-                }
+                    canvas.DrawImage(image, new SKPoint(x, y));
 
-                count++;
-                if (images.Length == count)
-                {
-                    var aimage = surface.Snapshot();
-                    var data = aimage.Encode(SKEncodedImageFormat.Png, 100);
-                    var stream = File.OpenWrite(Path.Combine(Global.current_path, "out", Global.version.Substring(19, 5).Replace(".", "_"), "collages", name + ".png"));
-                    data.SaveTo(stream);
-                    stream.Close();
-                    Global.Print(ConsoleColor.Green, "Collage Manager", $"Saved collage of {name}");
+                    x += 1024;
+                    if (info.Width <= x) // check if `x` is out of the image
+                    {
+                        x = 0;
+                        y += 1024;
+                    }
+
+                    count++;
+                    if (images.Length == count)
+                    {
+                        var aimage = surface.Snapshot();
+                        var data = aimage.Encode(SKEncodedImageFormat.Png, 100);
+                        var stream = File.OpenWrite(Path.Combine(Global.current_path, "out", Global.version.Substring(19, 5).Replace(".", "_"), "collages", name + ".png"));
+                        data.SaveTo(stream);
+                        stream.Close();
+                        Global.Print(ConsoleColor.Green, "Collage Manager", $"Saved collage of {name}");
+                    }
                 }
             }
         }
