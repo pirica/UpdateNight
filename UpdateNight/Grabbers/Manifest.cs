@@ -28,7 +28,6 @@ namespace UpdateNight.Grabbers
             if (manifestinfo == null) await GrabInfo();
 
             var manifestData = await manifestinfo.DownloadManifestDataAsync();
-            // var manifestData = File.ReadAllBytes("C:\\Users\\G-Fire\\source\\repos\\UpdateNight\\bin\\15.20.manifest.bytes");
             var manfiest = new Manifest(manifestData, new ManifestOptions
             {
                 ChunkBaseUri = new Uri("http://epicgames-download1.akamaized.net/Builds/Fortnite/CloudDir/ChunksV3/", UriKind.Absolute),

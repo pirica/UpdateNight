@@ -21,7 +21,7 @@ namespace UpdateNight.Grabbers
 
             while (!newKey)
             {
-                AAAAAAAAAAAAAA resa = Grab();
+                Response resa = Grab();
                 if (resa.Status != 200) continue;
                 AES res = resa.Data;
                 if (res.Version == Global.version)
@@ -52,21 +52,18 @@ namespace UpdateNight.Grabbers
             return Task.CompletedTask;
         }
 
-        public static AAAAAAAAAAAAAA Grab()
+        public static Response Grab()
         {
             var request = new RestClient("https://fortnite-api.com/v2/aes");
             var response = request.Execute(new RestRequest());
 
-            AAAAAAAAAAAAAA res = JsonConvert.DeserializeObject<AAAAAAAAAAAAAA>(response.Content);
+            Response res = JsonConvert.DeserializeObject<Response>(response.Content);
             keys = res.Data.DynamicKeys.ToDictionary(v => "FortniteGame/Content/Paks/" + v.PakName, v => v.Key);
-            /* keys.Clear();
-            keys.Add("FortniteGame/Content/Paks/pakchunk1004-WindowsClient", "581D53157B01D82CB0CDBD7A859D8774173C5F516C4D5AB3943C21C893BC3DC7");
-            keys.Add("FortniteGame/Content/Paks/pakchunk1008-WindowsClient", "73576107EBD61D6470DD8BD6A6C1D18FD0328FC26376A60E2E7CABD18226C55A"); */
             return res;
         }
     }
 
-    public class AAAAAAAAAAAAAA // aka response
+    public class Response
     {
         [JsonProperty("status")]
         public int Status { get; set; }

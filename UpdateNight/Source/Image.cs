@@ -9,7 +9,8 @@ namespace UpdateNight.Source
 {
     class Image
     {
-        public static SKTypeface typeface = SKTypeface.FromFile(Path.Combine(Global.AssetsPath, "fonts", "BurbankBigCondensedBlack.ttf"));
+        public static SKTypeface burbanktf = SKTypeface.FromFile(Path.Combine(Global.AssetsPath, "fonts", "BurbankBigCondensedBlack.ttf"));
+        // public static SKTypeface luckiestguytf = SKTypeface.FromFile(Path.Combine(Global.AssetsPath, "fonts", "LuckiestGuy.ttf")); // not use.. yet :eyes:
         public static Dictionary<string, SKImage> rarities = new Dictionary<string, SKImage>();
         public static void PreLoad()
         {
@@ -47,10 +48,10 @@ namespace UpdateNight.Source
                     IsAntialias = true,
                     Style = SKPaintStyle.Fill,
                     TextAlign = SKTextAlign.Center,
-                    TextSize = 100,
-                    Typeface = typeface
+                    TextSize = 90,
+                    Typeface = burbanktf
                 };
-                canvas.DrawText(cosmetic.Name, new SKPoint(info.Width / 2, 910), NamePaint);
+                canvas.DrawText(cosmetic.Name, new SKPoint(info.Width / 2, 895), NamePaint);
 
                 SKPaint DescPaint = new SKPaint
                 {
@@ -59,9 +60,31 @@ namespace UpdateNight.Source
                     Style = SKPaintStyle.Fill,
                     TextAlign = SKTextAlign.Center,
                     TextSize = 60,
-                    Typeface = typeface
+                    Typeface = burbanktf
                 };
-                canvas.DrawText(cosmetic.Description, new SKPoint(info.Width / 2, 970), DescPaint);
+                int textsize = (int)DescPaint.MeasureText(cosmetic.Description);
+                if (textsize >= 991)
+                {
+                    int size = 60;
+                    bool FitIn = false;
+                    while (!FitIn)
+                    {
+                        DescPaint = new SKPaint
+                        {
+                            Color = SKColors.White,
+                            IsAntialias = true,
+                            Style = SKPaintStyle.Fill,
+                            TextAlign = SKTextAlign.Center,
+                            TextSize = size,
+                            Typeface = burbanktf
+                        };
+                        textsize = (int)DescPaint.MeasureText(cosmetic.Description);
+                        if (textsize <= 990) FitIn = true;
+                        else size--;
+                    }
+                }
+                Console.WriteLine($"{cosmetic.Id} {textsize}");
+                canvas.DrawText(cosmetic.Description, new SKPoint(info.Width / 2, 960), DescPaint);
             }
 
             var image = surface.Snapshot();
