@@ -5,14 +5,10 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using UpdateNight.TocReader.IO;
-using UpdateNight.TocReader;
 using UpdateNight.TocReader.Parsers.Class;
 using SkiaSharp;
 using System.IO;
-using UpdateNight.TocReader.Parsers.Objects;
 using System.Collections.Generic;
-using System.Diagnostics;
-using Newtonsoft.Json;
 using UpdateNight.Source;
 using UpdateNight.Source.Models;
 
@@ -107,6 +103,7 @@ namespace UpdateNight
             // Functions
             await GetCosmetics();
             await GetMap();
+            await ExtractUi();
 
             // End program
             End = DateTime.UtcNow;
@@ -121,7 +118,7 @@ namespace UpdateNight
             foreach (string path in NewFiles)
             {
                 if (!(path.StartsWith("/FortniteGame/Content/Athena/Items/Cosmetics/") ||
-                    path.StartsWith("/FortniteGame/Content/Athena/Items/CosmeticVariantTokens/"))) continue;
+                      path.StartsWith("/FortniteGame/Content/Athena/Items/CosmeticVariantTokens/"))) continue;
                 if (path.Contains("Series")) continue;
 
                 IoPackage asset = Toc.GetAsset(path);
@@ -180,7 +177,41 @@ namespace UpdateNight
             stream.Close();
 
             Global.Print(ConsoleColor.Green, "Map", "Saved map image");
+            Console.WriteLine();
 
+            return Task.CompletedTask;
+        }
+
+        static Task ExtractUi()
+        {
+            foreach (string path in NewFiles)
+            {
+                if (!path.StartsWith("/FortniteGame/Content/UI/Foundation/Textures/")) continue;
+                IoPackage asset = Toc.GetAsset(path);
+                if (asset == null)
+                {
+                    Global.Print(ConsoleColor.Red, "Error", $"Could not get the asset for {path.Split("/").Last()}");
+                    return Task.CompletedTask;
+                }
+                
+                if (asset.ExportTypes.All(e => e.String != "Texture2D"))
+                {
+                    Global.Print(ConsoleColor.Red, "Error", $"{path.Split("/").Last()} asset does not have a Texture2D");
+                    return Task.CompletedTask;
+                }
+
+                UTexture2D texture = asset.GetExport<UTexture2D>();
+                SKImage image = texture.Image;
+                
+                var data = image.Encode(SKEncodedImageFormat.Png, 100);
+                var stream = File.OpenWrite(Path.Combine(Global.current_path, "out", Global.version.Substring(19, 5).Replace(".", "_"), "ui", $"{path.Split("/").Last()}.png"));
+                data.SaveTo(stream);
+                stream.Close();
+                
+                Global.Print(ConsoleColor.Green, "UI Manager", $"Saved image of {path.Split("/").Last()}");
+            }
+            
+            
             return Task.CompletedTask;
         }
     }

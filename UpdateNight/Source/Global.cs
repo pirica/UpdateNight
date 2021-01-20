@@ -68,6 +68,7 @@ public class Global
         Directory.CreateDirectory(pbase);
         Directory.CreateDirectory(Path.Combine(pbase, "icons"));
         Directory.CreateDirectory(Path.Combine(pbase, "collages"));
+        Directory.CreateDirectory(Path.Combine(pbase, "ui"));
     }
 
     public static void Exit(int code) => Exit(code, null);
