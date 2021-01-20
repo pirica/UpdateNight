@@ -83,7 +83,6 @@ namespace UpdateNight.Source
                         else size--;
                     }
                 }
-                Console.WriteLine($"{cosmetic.Id} {textsize}");
                 canvas.DrawText(cosmetic.Description, new SKPoint(info.Width / 2, 960), DescPaint);
             }
 

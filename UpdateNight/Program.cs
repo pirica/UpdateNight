@@ -84,7 +84,7 @@ namespace UpdateNight
                     Console.ForegroundColor = ConsoleColor.White;
                     Console.WriteLine();
                     Grabbers.MappingsGrabber.mapping = mapping;
-                    Grabbers.MappingsGrabber.Grab();
+                    await Grabbers.MappingsGrabber.Grab();
                 }
                 if (!newMapping) Thread.Sleep(1000);
             }

@@ -1,33 +1,41 @@
 ﻿using System;
-using RestSharp;
 using EpicManifestParser.Objects;
 using Newtonsoft.Json;
 using System.IO;
 using System.Threading.Tasks;
 using System.Net.Http;
+using System.Collections.Generic;
+using System.Net;
 
 namespace UpdateNight.Grabbers
 {
     class ManifestGrabber
     {
-        private static string token = null;
-        private static ManifestInfo manifestinfo = null;
+        private static Oauth _token = null;
+        private static ManifestInfo _manifestinfo = null;
+        private static readonly HttpClient Client = new HttpClient();
 
         public static async Task<ManifestInfo> GrabInfo()
         {
-            if (token == null) Auth();
+            if (_token == null) await GetOauthTokenAsync();
 
-            var infoStream = await CreateRequest("https://launcher-public-service-prod06.ol.epicgames.com/launcher/api/public/assets/v2/platform/Windows/namespace/fn/catalogItem/4fe75bbc5a674f4f9b356b5c90567da5/app/Fortnite/label/Live");
-            var manifestInfo = new ManifestInfo(infoStream);
-            manifestinfo = manifestInfo;
+            using HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, " https://launcher-public-service-prod06.ol.epicgames.com/launcher/api/public/assets/v2/platform/Windows/namespace/fn/catalogItem/4fe75bbc5a674f4f9b356b5c90567da5/app/Fortnite/label/Live");
+            request.Headers.Add("Authorization", $"bearer {_token.AccessToken}");
+            var response = await Client.SendAsync(request).ConfigureAwait(false);
+            if (response.StatusCode != HttpStatusCode.OK)
+                throw new Exception($"Request Failed with {(int) response.StatusCode}");
+            Stream data = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
+            
+            var manifestInfo = new ManifestInfo(data);
+            _manifestinfo = manifestInfo;
             return manifestInfo;
         }
 
         public static async Task<Manifest> Grab()
         {
-            if (manifestinfo == null) await GrabInfo();
+            if (_manifestinfo == null) await GrabInfo();
 
-            var manifestData = await manifestinfo.DownloadManifestDataAsync();
+            var manifestData = await _manifestinfo.DownloadManifestDataAsync();
             var manfiest = new Manifest(manifestData, new ManifestOptions
             {
                 ChunkBaseUri = new Uri("http://epicgames-download1.akamaized.net/Builds/Fortnite/CloudDir/ChunksV3/", UriKind.Absolute),
@@ -52,30 +60,33 @@ namespace UpdateNight.Grabbers
 
             return manfiest;
         }
-
-        private static async Task<Stream> CreateRequest(string uri)
+        
+        public static async Task GetOauthTokenAsync()
         {
-            var request = new HttpRequestMessage(HttpMethod.Get, uri);
-            request.Headers.Add("Authorization", $"bearer {token}");
-            var response = await new HttpClient().SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
-            response.EnsureSuccessStatusCode();
-            var stream = await response.Content.ReadAsStreamAsync();
-            return stream;
-        }
+            using HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "https://account-public-service-prod03.ol.epicgames.com/account/api/oauth/token")
+            {
+                Content = new FormUrlEncodedContent(new Dictionary<string, string>
+                {
+                    {"grant_type", "client_credentials"}, {"token_type", "eg1"}
+                })
+            };
+            request.Headers.Add("Authorization", "basic MzQ0NmNkNzI2OTRjNGE0NDg1ZDgxYjc3YWRiYjIxNDE6OTIwOWQ0YTVlMjVhNDU3ZmI5YjA3NDg5ZDMxM2I0MWE=");
+            using var response = await Client.SendAsync(request).ConfigureAwait(false);
 
-        private static string Auth()
-        {
-            // thanks sebas for the free code bop bop bop
-            var request = new RestClient("https://account-public-service-prod03.ol.epicgames.com/account/api/oauth/token");
-            var response = request.Execute(
-                new RestRequest(Method.POST)
-                    .AddHeader("Content-Type", "application/x-www-form-urlencoded")
-                    .AddHeader("Authorization", "basic MzQ0NmNkNzI2OTRjNGE0NDg1ZDgxYjc3YWRiYjIxNDE6OTIwOWQ0YTVlMjVhNDU3ZmI5YjA3NDg5ZDMxM2I0MWE=")
-                    .AddParameter("grant_type", "client_credentials"));
-
-            string res = JsonConvert.DeserializeObject<dynamic>(response.Content)["access_token"];
-            token = res;
-            return res;
+            string data = await response.Content.ReadAsStringAsync();
+            var res = JsonConvert.DeserializeObject<Oauth>(data);
+            _token = res;
         }
+    }
+
+    public class Oauth
+    {
+        [JsonProperty("access_token")] public string AccessToken { get; set; }
+        [JsonProperty("expires_in")] public int ExpiresIn { get; set; }
+        [JsonProperty("expires_at")] public DateTime ExpiresAt { get; set; }
+        [JsonProperty("token_type")] public string TokenType { get; set; }
+        [JsonProperty("client_id")] public string ClientId { get; set; }
+        [JsonProperty("internal_client")] public bool InternalClient { get; set; }
+        [JsonProperty("client_service")] public string ClientService { get; set; }
     }
 }
