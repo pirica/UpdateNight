@@ -24,12 +24,13 @@ namespace UpdateNight
         public static DateTime End;
 
         public static List<string> Files = new List<string>();
+        public static List<string> NewFiles = new List<string>();
 
         static async Task Main()
         {
+            // Start
             Global.Print(ConsoleColor.Magenta, "Update Night", $"Started Update Night v{Assembly.GetExecutingAssembly().GetName().Version} made by Command");
 
-            #region Start
             Console.WriteLine();
             Console.Write("Please enter the fortnite build to compare: ");
             string old_version = Console.ReadLine();
@@ -38,9 +39,8 @@ namespace UpdateNight
             Console.WriteLine();
 
             Global.Check(old_version);
-            #endregion
 
-            #region Wait until new update
+            // Wait until new update
             bool newVersion = false;
             while (!newVersion)
             {
@@ -88,11 +88,10 @@ namespace UpdateNight
                 }
                 if (!newMapping) Thread.Sleep(1000);
             }
-            #endregion
             
             Start = DateTime.UtcNow;
 
-            #region Grabbers and files
+            // Grabbers
             Manifest manifest = await Grabbers.ManifestGrabber.Grab();
             Global.CreateOut();
 
@@ -100,16 +99,29 @@ namespace UpdateNight
 
             Image.PreLoad();
 
-            List<string> old_files = (await File.ReadAllLinesAsync(Path.Combine(Global.current_path, "out", old_version.Replace(".", "_"), "files.txt"))).ToList();
-            List<string> new_files = Source.Utils.GetNewFiles(old_files, Source.Utils.BuildFileList());
+            // File Comparision
+            List<string> OldFiles = (await File.ReadAllLinesAsync(Path.Combine(Global.current_path, "out", old_version.Replace(".", "_"), "files.txt"))).ToList();
+            NewFiles = Source.Utils.GetNewFiles(OldFiles, Source.Utils.BuildFileList());
             await File.WriteAllLinesAsync(Path.Combine(Global.current_path, "out", Global.version.Substring(19, 5).Replace(".", "_"), "files.txt"), Source.Utils.BuildFileList());
-            #endregion
 
-            #region Cosmetics
-            List<Cosmetic> cosmeticsdata = new List<Cosmetic>();
-            foreach (string path in new_files)
+            // Functions
+            await GetCosmetics();
+            await GetMap();
+
+            // End program
+            End = DateTime.UtcNow;
+            TimeSpan dur = End.Subtract(Start);
+            Console.WriteLine();
+            Global.Exit(0, $"Finished Update Night in {dur.ToString("T").Replace(",", ".")}");
+        }
+
+        static Task GetCosmetics()
+        {
+            List<Cosmetic> CosmeticsData = new List<Cosmetic>();
+            foreach (string path in NewFiles)
             {
-                if (!path.StartsWith("/FortniteGame/Content/Athena/Items/Cosmetics/")) continue;
+                if (!path.StartsWith("/FortniteGame/Content/Athena/Items/Cosmetics/") ||
+                    !path.StartsWith("/FortniteGame/Content/Athena/Items/CosmeticVariantTokens/")) continue;
                 if (path.Contains("Series")) continue;
 
                 IoPackage asset = Toc.GetAsset(path);
@@ -118,33 +130,57 @@ namespace UpdateNight
                     Global.Print(ConsoleColor.Red, "Error", $"Could not get the asset for {path.Split("/").Last()}");
                     continue;
                 }
-                
+
                 Cosmetic cosmetic = new Cosmetic(asset, path);
                 Image.Cosmetic(cosmetic);
-                cosmeticsdata.Add(cosmetic);
+                CosmeticsData.Add(cosmetic);
             }
 
             Console.WriteLine();
 
-            List<string> types = cosmeticsdata.Select(c => c.Type).ToList();
+            List<string> types = CosmeticsData.Select(c => c.Type).ToList();
             types = types.Distinct().ToList();
             foreach (string type in types)
             {
-                List<Cosmetic> data = cosmeticsdata.Where(c => c.Type == type).ToList();
+                List<Cosmetic> data = CosmeticsData.Where(c => c.Type == type).ToList();
                 data = data.OrderBy(c => c.Name).ThenBy(c => c.Rarity)
                             .ThenBy(c => Source.Utils.BuildRarity(c.Rarity)).ThenBy(c => c.Type).ToList();
                 Image.Collage(data.Select(c => c.Canvas).ToArray(), type);
             }
 
-            Image.Collage(cosmeticsdata.OrderBy(c => c.Name).ThenBy(c => c.Rarity)
+            Image.Collage(CosmeticsData.OrderBy(c => c.Name).ThenBy(c => c.Rarity)
                 .ThenBy(c => Source.Utils.BuildRarity(c.Rarity)).ThenBy(c => c.Type)
                 .Select(c => c.Canvas).ToArray(), "All");
-            #endregion
 
-            End = DateTime.UtcNow;
-            TimeSpan dur = End.Subtract(Start);
-            Console.WriteLine();
-            Global.Exit(0, $"Finished Update Night in {dur.ToString("T").Replace(",", ".")}");
+            return Task.CompletedTask;
+        }
+
+        static Task GetMap()
+        {
+            IoPackage asset = Toc.GetAsset("/FortniteGame/Content/Athena/Apollo/Maps/UI/Apollo_Terrain_Minimap");
+            if (asset == null)
+            {
+                Global.Print(ConsoleColor.Red, "Error", "Could not get the asset for the Map");
+                return Task.CompletedTask;
+            }
+
+            if (!asset.ExportTypes.Any(e => e.String == "Texture2D"))
+            {
+                Global.Print(ConsoleColor.Red, "Error", "Map asset does not have a Texture2D");
+                return Task.CompletedTask;
+            }
+
+            UTexture2D texture = asset.GetExport<UTexture2D>();
+            SKImage image = texture.Image;
+
+            var data = image.Encode(SKEncodedImageFormat.Png, 100);
+            var stream = File.OpenWrite(Path.Combine(Global.current_path, "out", Global.version.Substring(19, 5).Replace(".", "_"), "map.png"));
+            data.SaveTo(stream);
+            stream.Close();
+
+            Global.Print(ConsoleColor.Green, "Map", "Saved map image");
+
+            return Task.CompletedTask;
         }
     }
 }

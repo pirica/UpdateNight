@@ -8,6 +8,7 @@ Update Night is a simple-to-use fortnite leaking tool with a tons of features
 - Download files from Manifest
 - Grabs lastest AES and Mappings
 - Extract cosmetics (and make a collage of them)
+- Extract the current Map
 
 ## TODO
 
@@ -16,8 +17,8 @@ Update Night is a simple-to-use fortnite leaking tool with a tons of features
 - - Challenges
 - - Weapons
 - - Consumables
-- - Map
 - - BattlePass
+- - Map with POIs
 - Maybe Add (aka low priority) :
 - - XP Coins in map
 - - NPC Locations and quests
