@@ -186,7 +186,8 @@ namespace UpdateNight
         {
             foreach (string path in NewFiles)
             {
-                if (!path.StartsWith("/FortniteGame/Content/UI/Foundation/Textures/")) continue;
+                if (!(path.StartsWith("/FortniteGame/Content/UI/Foundation/") ||
+                      path.StartsWith("/FortniteGame/Content/2dAssets/"))) continue;
                 IoPackage asset = Toc.GetAsset(path);
                 if (asset == null)
                 {
