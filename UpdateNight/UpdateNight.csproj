@@ -1,0 +1,53 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <!-- default info and thigies  /shrug -->
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+
+    <!-- copyright claim bop bop bop bop -->
+    <Company>Command</Company>
+    <Description>Update Night is a simple-to-use fortnite leaking tool with a ton of features</Description>
+    <Authors>Command</Authors>
+    <Product>UpdateNight</Product>
+    <Copyright>Copyright (c) 2021 Command</Copyright>
+
+    <!-- make exe better uwu -->
+    <ApplicationIcon>icon.ico</ApplicationIcon>
+    <PackageIcon>icon.ico</PackageIcon>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+
+    <!-- make it a single exe -->
+    <PublishSingleFile>true</PublishSingleFile>
+    <!-- <PublishTrimmed>true</PublishTrimmed> -->
+
+</PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+    <Optimize>true</Optimize>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="icon.ico">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="EpicManifestParser" Version="1.2.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+    <PackageReference Include="RestSharp" Version="106.11.7" />
+    <PackageReference Include="SkiaSharp" Version="2.80.2" />
+    <PackageReference Include="Usmap.NET" Version="1.1.1" />
+  </ItemGroup>
+
+</Project>
