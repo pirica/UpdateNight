@@ -120,8 +120,8 @@ namespace UpdateNight
             List<Cosmetic> CosmeticsData = new List<Cosmetic>();
             foreach (string path in NewFiles)
             {
-                if (!path.StartsWith("/FortniteGame/Content/Athena/Items/Cosmetics/") ||
-                    !path.StartsWith("/FortniteGame/Content/Athena/Items/CosmeticVariantTokens/")) continue;
+                if (!(path.StartsWith("/FortniteGame/Content/Athena/Items/Cosmetics/") ||
+                    path.StartsWith("/FortniteGame/Content/Athena/Items/CosmeticVariantTokens/"))) continue;
                 if (path.Contains("Series")) continue;
 
                 IoPackage asset = Toc.GetAsset(path);
@@ -151,6 +151,8 @@ namespace UpdateNight
             Image.Collage(CosmeticsData.OrderBy(c => c.Name).ThenBy(c => c.Rarity)
                 .ThenBy(c => Source.Utils.BuildRarity(c.Rarity)).ThenBy(c => c.Type)
                 .Select(c => c.Canvas).ToArray(), "All");
+
+            Console.WriteLine();
 
             return Task.CompletedTask;
         }
