@@ -11,6 +11,7 @@ using SkiaSharp;
 using System.IO;
 using UpdateNight.TocReader.Parsers.Objects;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Newtonsoft.Json;
 using UpdateNight.Source;
 using UpdateNight.Source.Models;
@@ -19,10 +20,10 @@ namespace UpdateNight
 {
     class Program
     {
-        public static DateTime start;
-        public static DateTime end;
+        public static DateTime Start;
+        public static DateTime End;
 
-        public static List<string> files = new List<string>();
+        public static List<string> Files = new List<string>();
 
         static async Task Main()
         {
@@ -68,8 +69,8 @@ namespace UpdateNight
             while (!newMapping)
             {
                 // TODO: make this better
-                Grabbers.Mapping[] mappings = Grabbers.MappingsGrabber.GrabInfo();
-                Grabbers.Mapping mapping = mappings.Where(m => m.Meta.CompressionMethod == "Oodle" && m.Meta.Version == Global.version).FirstOrDefault();
+                Grabbers.Mapping[] mappings = await Grabbers.MappingsGrabber.GrabInfo();
+                Grabbers.Mapping mapping = mappings.FirstOrDefault(m => m.Meta.CompressionMethod == "Oodle" && m.Meta.Version == Global.version);
                 if (mapping != null)
                 {
                     newMapping = true;
@@ -88,8 +89,8 @@ namespace UpdateNight
                 if (!newMapping) Thread.Sleep(1000);
             }
             #endregion
-
-            start = DateTime.UtcNow;
+            
+            Start = DateTime.UtcNow;
 
             #region Grabbers and files
             Manifest manifest = await Grabbers.ManifestGrabber.Grab();
@@ -99,9 +100,9 @@ namespace UpdateNight
 
             Image.PreLoad();
 
-            List<string> old_files = File.ReadAllLines(Path.Combine(Global.current_path, "out", old_version.Replace(".", "_"), "files.txt")).ToList();
+            List<string> old_files = (await File.ReadAllLinesAsync(Path.Combine(Global.current_path, "out", old_version.Replace(".", "_"), "files.txt"))).ToList();
             List<string> new_files = Source.Utils.GetNewFiles(old_files, Source.Utils.BuildFileList());
-            File.WriteAllLines(Path.Combine(Global.current_path, "out", Global.version.Substring(19, 5).Replace(".", "_"), "files.txt"), Source.Utils.BuildFileList());
+            await File.WriteAllLinesAsync(Path.Combine(Global.current_path, "out", Global.version.Substring(19, 5).Replace(".", "_"), "files.txt"), Source.Utils.BuildFileList());
             #endregion
 
             #region Cosmetics
@@ -140,8 +141,8 @@ namespace UpdateNight
                 .Select(c => c.Canvas).ToArray(), "All");
             #endregion
 
-            end = DateTime.UtcNow;
-            TimeSpan dur = end.Subtract(start);
+            End = DateTime.UtcNow;
+            TimeSpan dur = End.Subtract(Start);
             Console.WriteLine();
             Global.Exit(0, $"Finished Update Night in {dur.ToString("T").Replace(",", ".")}");
         }

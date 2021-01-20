@@ -19,7 +19,7 @@ public class Global
 
     public static string version = "";
     // public static string current_path = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
-    public static string current_path = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName);
+    public static string current_path = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule?.FileName);
     public static string AssetsPath = Path.Combine(current_path, "assets");
     public static readonly Dictionary<string, FFileIoStoreReader> IoFiles = new Dictionary<string, FFileIoStoreReader>();
     public static readonly Dictionary<string, FUnversionedType> CachedSchemas = new Dictionary<string, FUnversionedType>();

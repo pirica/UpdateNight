@@ -1,10 +1,10 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
-using RestSharp;
 using UsmapNET.Classes;
 
 namespace UpdateNight.Grabbers
@@ -13,23 +13,25 @@ namespace UpdateNight.Grabbers
     {
         public static Mapping[] mapingsinfo = null;
         public static Mapping mapping = null;
+        private static readonly HttpClient Client = new HttpClient();
 
-        public static Mapping[] GrabInfo()
+        public static async Task<Mapping[]> GrabInfo()
         {
-            var request = new RestClient("https://benbotfn.tk/api/v1/mappings");
-            var response = request.Execute(new RestRequest());
+         //   var request = new RestClient("https://benbotfn.tk/api/v1/mappings");
+            using HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, "https://benbotfn.tk/api/v1/mappings");
+            HttpResponseMessage response = await Client.SendAsync(request).ConfigureAwait(false);
+            if (response.StatusCode != HttpStatusCode.OK)
+                throw new Exception($"Request Failed With {(int) response.StatusCode}, benbot seems to be down");
 
-            Mapping[] res = JsonConvert.DeserializeObject<Mapping[]>(response.Content);
+            string data = await response.Content.ReadAsStringAsync();
+            Mapping[] res = JsonConvert.DeserializeObject<Mapping[]>(data);
             mapingsinfo = res;
             return res;
         }
 
-        public static void Grab()
+        public static async Task Grab()
         {
-            var request = new RestClient(mapping.Url);
-            var response = request.Execute(new RestRequest());
-
-            byte[] buffer = response.RawBytes;
+            byte[] buffer = await Client.GetByteArrayAsync(mapping.Url).ConfigureAwait(false);
 
             Usmap usmap = new Usmap(buffer, new UsmapOptions
             {
