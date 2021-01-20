@@ -90,7 +90,7 @@ namespace UpdateNight
             }
             #endregion
             
-            Start = DateTime.Now;
+            Start = DateTime.UtcNow;
 
             #region Grabbers and files
             Manifest manifest = await Grabbers.ManifestGrabber.Grab();
@@ -141,7 +141,7 @@ namespace UpdateNight
                 .Select(c => c.Canvas).ToArray(), "All");
             #endregion
 
-            End = DateTime.Now;
+            End = DateTime.UtcNow;
             TimeSpan dur = End.Subtract(Start);
             Console.WriteLine();
             Global.Exit(0, $"Finished Update Night in {dur.ToString("T").Replace(",", ".")}");

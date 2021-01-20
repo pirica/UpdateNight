@@ -131,7 +131,7 @@ namespace UpdateNight.Source.Models
                     GetImage();
                     return;
                 }
-                if (!asset.ExportTypes.Any(e => e.String == "Texture2D"))
+                if (asset.ExportTypes.Any(e => e.String != "Texture2D"))
                 {
                     Global.Print(ConsoleColor.Red, "Error", $"The Image Path Detected for {Id} ({ImagePath}) is not a Texture", true);
                     ForceQuestionMark = true;
