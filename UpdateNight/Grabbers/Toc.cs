@@ -6,7 +6,6 @@ using EpicManifestParser.Objects;
 using UpdateNight.Source;
 using UpdateNight.TocReader;
 using System.Threading.Tasks;
-using Utils = UpdateNight.Source.Utils;
 
 namespace UpdateNight.Grabbers
 {
