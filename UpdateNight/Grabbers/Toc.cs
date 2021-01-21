@@ -64,7 +64,21 @@ namespace UpdateNight.Grabbers
                 Console.ForegroundColor = ConsoleColor.Cyan;
                 Console.Write(file.Replace("FortniteGame/Content/Paks/", ""));
                 Console.ForegroundColor = ConsoleColor.White;
-                if (ioStore.IsEncrypted && ioStore.AesKey == null) Console.WriteLine(", No key provided");
+                if (ioStore.IsEncrypted && ioStore.AesKey == null)
+                {
+                    Console.Write(" (No key provided | Version: ");
+                    Console.ForegroundColor = ConsoleColor.Magenta;
+                    Console.Write((int)ioStore.TocResource.Header.Version);
+                    Console.ForegroundColor = ConsoleColor.White;
+                    Console.Write(" | Guid: ");
+                    Console.ForegroundColor = ConsoleColor.Cyan;
+                    Console.Write(ioStore.TocResource.Header.EncryptionKeyGuid);
+                    Console.ForegroundColor = ConsoleColor.White;
+                    Console.Write(")");
+                    
+                    Console.WriteLine();
+                }
+                
                 else
                 {
                     Console.Write(" in ");
