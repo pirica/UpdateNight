@@ -9,6 +9,7 @@ Update Night is a simple-to-use fortnite leaking tool with a tons of features
 - Grabs lastest AES and Mappings
 - Extract cosmetics (and make a collage of them)
 - Extract the current Map
+- Extract UI icons
 
 ## TODO
 
