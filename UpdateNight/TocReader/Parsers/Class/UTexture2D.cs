@@ -70,14 +70,14 @@ namespace UpdateNight.TocReader.Parsers.Class
                 while (!PixelFormatName.IsNone)
                 {
                     _ = reader.ReadInt32(); // SkipOffset
-                    if (Global.Game.Version >= EPakVersion.RELATIVE_CHUNK_OFFSETS)
-                        _ = reader.ReadInt32(); // SkipOffsetH
+                    _ = reader.ReadInt32(); // SkipOffsetH
 
                     data.Add(new FTexturePlatformData(reader, ubulk, bulkOffset));
+#pragma warning disable IDE0059
                     PixelFormatName = reader.ReadFName();
+#pragma warning restore IDE0059
 
-                    if (Global.Game.Version < EPakVersion.RELATIVE_CHUNK_OFFSETS)
-                        break;
+                    break;
                 }
                 PlatformDatas = data.ToArray();
             }

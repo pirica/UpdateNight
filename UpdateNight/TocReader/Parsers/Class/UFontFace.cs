@@ -18,7 +18,7 @@ namespace UpdateNight.TocReader.Parsers.Class
             if (FontFaceAsset.TryGetValue("SourceFilename", out var prop) && prop is StrProperty str)
             {
                 string FontFilename = Path.GetFileName(str.Value);
-                string folder = Global.current_path + "\\Fonts\\";
+                string folder = Global.CurrentPath + "\\Fonts\\";
 
                 if (ufont != null)
                 {

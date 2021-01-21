@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using UpdateNight.TocReader.IO;
 using EpicManifestParser.Objects;
@@ -41,11 +40,7 @@ namespace UpdateNight.Grabbers
 
                 FFileIoStoreReader ioStore = new FFileIoStoreReader(utoc.Name.SubstringAfterLast('\\'), utoc.Name.SubstringBeforeLast('\\'), utoc.GetStream(), ucas.GetStream());
 
-                if (ioStore.IsEncrypted)
-                {
-                    // await Aes.WaitUntilNewKey();
-                    if (Aes.Keys.TryGetValue(file, out string key)) ioStore.AesKey = key.ToUpperInvariant().Trim().ToBytesKey();
-                }
+                if (ioStore.IsEncrypted && Aes.Keys.TryGetValue(file, out string key)) ioStore.AesKey = key.ToUpperInvariant().Trim().ToBytesKey();
 
                 if (!ioStore.IsEncrypted || (ioStore.IsEncrypted && ioStore.AesKey != null))
                 {
@@ -66,19 +61,23 @@ namespace UpdateNight.Grabbers
                 Console.ForegroundColor = ConsoleColor.White;
                 if (ioStore.IsEncrypted && ioStore.AesKey == null)
                 {
-                    Console.Write(" (No key provided | Version: ");
+                    Console.Write(", No key provided - [Version: ");
                     Console.ForegroundColor = ConsoleColor.Magenta;
                     Console.Write((int)ioStore.TocResource.Header.Version);
                     Console.ForegroundColor = ConsoleColor.White;
-                    Console.Write(" | Guid: ");
+                    Console.Write(", Guid: ");
                     Console.ForegroundColor = ConsoleColor.Cyan;
                     Console.Write(ioStore.TocResource.Header.EncryptionKeyGuid);
                     Console.ForegroundColor = ConsoleColor.White;
-                    Console.Write(")");
+                    Console.Write(", Size: ");
+                    Console.ForegroundColor = ConsoleColor.Magenta;
+                    Console.Write(Strings.GetReadableSize((double)ioStore.ContainerFile.FileSize));
+                    Console.ForegroundColor = ConsoleColor.White;
+                    Console.Write("]");
                     
                     Console.WriteLine();
                 }
-                
+
                 else
                 {
                     Console.Write(" in ");

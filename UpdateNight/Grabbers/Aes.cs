@@ -26,7 +26,7 @@ namespace UpdateNight.Grabbers
                 Response resa = await Grab();
                 if (resa.Status != 200) continue;
                 AES res = resa.Data;
-                if (res.Version == Global.version)
+                if (res.Version == Global.Version)
                 {
                     _newKey = true;
                     Console.Write($"[{Global.BuildTime()}] ");
@@ -35,7 +35,7 @@ namespace UpdateNight.Grabbers
                     Console.ForegroundColor = ConsoleColor.White;
                     Console.Write("Grabbed AES for ");
                     Console.ForegroundColor = ConsoleColor.Cyan;
-                    Console.Write(Global.version);
+                    Console.Write(Global.Version);
 #if DEBUG
                     Console.ForegroundColor = ConsoleColor.White;
                     Console.Write(" (");

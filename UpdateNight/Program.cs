@@ -11,6 +11,7 @@ using System.IO;
 using System.Collections.Generic;
 using UpdateNight.Source;
 using UpdateNight.Source.Models;
+using UpdateNight.TocReader.Parsers.Objects;
 
 namespace UpdateNight
 {
@@ -44,7 +45,7 @@ namespace UpdateNight
                 if (info.BuildVersion.Substring(19, 5) != old_version)
                 {
                     newVersion = true;
-                    Global.version = info.BuildVersion;
+                    Global.Version = info.BuildVersion;
 
                     Console.Write($"[{Global.BuildTime()}] ");
                     Console.ForegroundColor = ConsoleColor.Green;
@@ -66,7 +67,7 @@ namespace UpdateNight
             {
                 // TODO: make this better
                 Grabbers.Mapping[] mappings = await Grabbers.MappingsGrabber.GrabInfo();
-                Grabbers.Mapping mapping = mappings.FirstOrDefault(m => m.Meta.CompressionMethod == "Oodle" && m.Meta.Version == Global.version);
+                Grabbers.Mapping mapping = mappings.FirstOrDefault(m => m.Meta.CompressionMethod == "Oodle" && m.Meta.Version == Global.Version);
                 if (mapping != null)
                 {
                     newMapping = true;
@@ -76,7 +77,7 @@ namespace UpdateNight
                     Console.ForegroundColor = ConsoleColor.White;
                     Console.Write("Grabbed mappings for ");
                     Console.ForegroundColor = ConsoleColor.Cyan;
-                    Console.Write(Global.version);
+                    Console.Write(Global.Version);
                     Console.ForegroundColor = ConsoleColor.White;
                     Console.WriteLine();
                     Grabbers.MappingsGrabber.mapping = mapping;
@@ -84,7 +85,7 @@ namespace UpdateNight
                 }
                 if (!newMapping) Thread.Sleep(1000);
             }
-            
+
             Start = DateTime.UtcNow;
 
             // Grabbers
@@ -93,12 +94,21 @@ namespace UpdateNight
 
             await Grabbers.Toc.GrabTocsAsync(manifest);
 
+            // Pre loads
             Image.PreLoad();
+            Utils.Localization.PreLoad();
+
+            Console.WriteLine();
 
             // File Comparision
-            List<string> OldFiles = (await File.ReadAllLinesAsync(Path.Combine(Global.current_path, "out", old_version.Replace(".", "_"), "files.txt"))).ToList();
-            NewFiles = Utils.GetNewFiles(OldFiles, Source.Utils.BuildFileList());
-            await File.WriteAllLinesAsync(Path.Combine(Global.current_path, "out", Global.version.Substring(19, 5).Replace(".", "_"), "files.txt"), Source.Utils.BuildFileList());
+            Global.Print(ConsoleColor.Green, "File Manager", "Building file list...");
+            List<string> CurrentFiles = Utils.BuildFileList();
+            List<string> OldFiles = (await File.ReadAllLinesAsync(Path.Combine(Global.CurrentPath, "out", old_version.Replace(".", "_"), "files.txt"))).ToList();
+            NewFiles = Utils.GetNewFiles(OldFiles, CurrentFiles);
+            await File.WriteAllLinesAsync(Path.Combine(Global.OutPath, "files.txt"), CurrentFiles);
+            Global.Print(ConsoleColor.Green, "File Manager", "Built file list");
+
+            Console.WriteLine();
 
             // Functions
             await GetCosmetics();
@@ -127,14 +137,15 @@ namespace UpdateNight
                     Global.Print(ConsoleColor.Red, "Error", $"Could not get the asset for {path.Split("/").Last()}");
                     continue;
                 }
-                
+
                 Cosmetic cosmetic = new Cosmetic(asset, path);
                 Image.Cosmetic(cosmetic);
                 CosmeticsData.Add(cosmetic);
             }
 
             Console.WriteLine();
-            List<string> types = CosmeticsData.Select(c => c.Type).ToList();
+            // TODO: Sort this property
+            /* List<string> types = CosmeticsData.Select(c => c.Type).ToList();
             types = types.Distinct().ToList();
             foreach (string type in types)
             {
@@ -143,11 +154,20 @@ namespace UpdateNight
                             .ThenBy(c => Source.Utils.BuildRarity(c.Rarity)).ThenBy(c => c.Type).ToList();
                 Image.Collage(data.Select(c => c.Canvas).ToArray(), type);
             }
-            
-            Image.Collage(CosmeticsData.OrderBy(c => c.Name).ThenBy(c => c.Rarity)
-                .ThenBy(c => Source.Utils.BuildRarity(c.Rarity)).ThenBy(c => c.Type)
+
+            List<string> sets = CosmeticsData.Where(c => !string.IsNullOrEmpty(c.Set)).Select(c => c.Set).ToList();
+            sets = sets.Distinct().ToList();
+            foreach (string set in sets)
+            {
+                List<Cosmetic> data = CosmeticsData.Where(c => c.Set == set).ToList();
+                data = data.OrderBy(c => c.Name).ThenBy(c => c.Rarity)
+                            .ThenBy(c => Source.Utils.BuildRarity(c.Rarity)).ThenBy(c => c.Type).ToList();
+                Image.Collage(data.Select(c => c.Canvas).ToArray(), set);
+            } */
+
+            Image.Collage(CosmeticsData.OrderBy(c => c.Name).ThenBy(c => Utils.BuildRarity(c.Rarity))
                 .Select(c => c.Canvas).ToArray(), "All");
-            
+
             Console.WriteLine();
 
             return Task.CompletedTask;
@@ -172,7 +192,7 @@ namespace UpdateNight
             SKImage image = texture.Image;
 
             var data = image.Encode(SKEncodedImageFormat.Png, 100);
-            var stream = File.OpenWrite(Path.Combine(Global.current_path, "out", Global.version.Substring(19, 5).Replace(".", "_"), "map.png"));
+            var stream = File.OpenWrite(Path.Combine(Global.OutPath, "map.png"));
             data.SaveTo(stream);
             stream.Close();
 
@@ -194,7 +214,7 @@ namespace UpdateNight
                     Global.Print(ConsoleColor.Red, "Error", $"Could not get the asset for {path.Split("/").Last()}");
                     return Task.CompletedTask;
                 }
-                
+
                 if (asset.ExportTypes.All(e => e.String != "Texture2D"))
                 {
                     Global.Print(ConsoleColor.Red, "Error", $"{path.Split("/").Last()} asset does not have a Texture2D");
@@ -203,16 +223,16 @@ namespace UpdateNight
 
                 UTexture2D texture = asset.GetExport<UTexture2D>();
                 SKImage image = texture.Image;
-                
+
                 var data = image.Encode(SKEncodedImageFormat.Png, 100);
-                var stream = File.OpenWrite(Path.Combine(Global.current_path, "out", Global.version.Substring(19, 5).Replace(".", "_"), "ui", $"{path.Split("/").Last()}.png"));
+                var stream = File.OpenWrite(Path.Combine(Global.OutPath, "ui", $"{path.Split("/").Last()}.png"));
                 data.SaveTo(stream);
                 stream.Close();
-                
+
                 Global.Print(ConsoleColor.Green, "UI Manager", $"Saved image of {path.Split("/").Last()}");
             }
-            
-            
+
+
             return Task.CompletedTask;
         }
     }

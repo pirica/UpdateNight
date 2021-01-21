@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
+using System.Linq;
 using SkiaSharp;
 using UpdateNight.Source.Models;
 
@@ -10,7 +10,7 @@ namespace UpdateNight.Source
     class Image
     {
         public static SKTypeface burbanktf = SKTypeface.FromFile(Path.Combine(Global.AssetsPath, "fonts", "BurbankBigCondensedBlack.ttf"));
-        // public static SKTypeface luckiestguytf = SKTypeface.FromFile(Path.Combine(Global.AssetsPath, "fonts", "LuckiestGuy.ttf")); // not use.. yet :eyes:
+        public static SKTypeface luckiestguytf = SKTypeface.FromFile(Path.Combine(Global.AssetsPath, "fonts", "LuckiestGuy.ttf")); // not use.. yet :eyes:
         public static Dictionary<string, SKImage> rarities = new Dictionary<string, SKImage>();
         public static void PreLoad()
         {
@@ -48,10 +48,10 @@ namespace UpdateNight.Source
                     IsAntialias = true,
                     Style = SKPaintStyle.Fill,
                     TextAlign = SKTextAlign.Center,
-                    TextSize = 90,
+                    TextSize = 80,
                     Typeface = burbanktf
                 };
-                canvas.DrawText(cosmetic.Name, new SKPoint(info.Width / 2, 895), NamePaint);
+                canvas.DrawText(cosmetic.Name, new SKPoint(info.Width / 2, 880), NamePaint);
 
                 SKPaint DescPaint = new SKPaint
                 {
@@ -59,13 +59,13 @@ namespace UpdateNight.Source
                     IsAntialias = true,
                     Style = SKPaintStyle.Fill,
                     TextAlign = SKTextAlign.Center,
-                    TextSize = 60,
+                    TextSize = 50,
                     Typeface = burbanktf
                 };
                 int textsize = (int)DescPaint.MeasureText(cosmetic.Description);
                 if (textsize >= 991)
                 {
-                    int size = 60;
+                    int size = 50;
                     bool FitIn = false;
                     while (!FitIn)
                     {
@@ -83,13 +83,44 @@ namespace UpdateNight.Source
                         else size--;
                     }
                 }
-                canvas.DrawText(cosmetic.Description, new SKPoint(info.Width / 2, 960), DescPaint);
+                canvas.DrawText(cosmetic.Description, new SKPoint(info.Width / 2, 940), DescPaint);
+            }
+
+            // set
+            if (!string.IsNullOrEmpty(cosmetic.Set)
+                && Utils.Localization.SetsName.TryGetValue(cosmetic.Set, out var set))
+            {
+                SKPaint NamePaint = new SKPaint
+                {
+                    Color = SKColors.DimGray,
+                    IsAntialias = true,
+                    Style = SKPaintStyle.Fill,
+                    TextAlign = SKTextAlign.Left,
+                    TextSize = 40,
+                    Typeface = burbanktf
+                };
+                canvas.DrawText(set, new SKPoint(20, 1004), NamePaint);
+            }
+
+            // source
+            if (!string.IsNullOrEmpty(cosmetic.Source))
+            {
+                SKPaint NamePaint = new SKPaint
+                {
+                    Color = SKColors.DimGray,
+                    IsAntialias = true,
+                    Style = SKPaintStyle.Fill,
+                    TextAlign = SKTextAlign.Right,
+                    TextSize = 40,
+                    Typeface = burbanktf
+                };
+                canvas.DrawText(cosmetic.Source, new SKPoint(1004, 1004), NamePaint);
             }
 
             var image = surface.Snapshot();
             cosmetic.Canvas = image;
             var data = image.Encode(SKEncodedImageFormat.Png, 100);
-            var stream = File.OpenWrite(Path.Combine(Global.current_path, "out", Global.version.Substring(19, 5).Replace(".", "_"), "icons", cosmetic.Id + ".png"));
+            var stream = File.OpenWrite(Path.Combine(Global.OutPath, "icons", cosmetic.Id + ".png"));
             data.SaveTo(stream);
             stream.Close();
             Global.Print(ConsoleColor.Green, "Cosmetic Manager", $"Saved image of {cosmetic.Id}");
@@ -98,7 +129,7 @@ namespace UpdateNight.Source
         public static void Collage(List<SKImage> images, string name) => Collage(images.ToArray(), name);
         public static void Collage(SKImage[] images, string name)
         {
-            if (images != null)
+            if (images != null && images.Length >= 1)
             {
                 double width = Math.Ceiling(Math.Sqrt(images.Length));
                 double height = Math.Ceiling(images.Length / width);
@@ -126,7 +157,7 @@ namespace UpdateNight.Source
                     {
                         var aimage = surface.Snapshot();
                         var data = aimage.Encode(SKEncodedImageFormat.Png, 100);
-                        var stream = File.OpenWrite(Path.Combine(Global.current_path, "out", Global.version.Substring(19, 5).Replace(".", "_"), "collages", name + ".png"));
+                        var stream = File.OpenWrite(Path.Combine(Global.OutPath, "collages", name + ".png"));
                         data.SaveTo(stream);
                         stream.Close();
                         Global.Print(ConsoleColor.Green, "Collage Manager", $"Saved collage of {name}");

@@ -35,7 +35,7 @@ namespace UpdateNight.Grabbers
 
             Usmap usmap = new Usmap(buffer, new UsmapOptions
             {
-                OodlePath = Path.Combine(Global.current_path, "oo2core_8_win64.dll")
+                OodlePath = Path.Combine(Global.CurrentPath, "oo2core_8_win64.dll")
             });
             Global.Usmap = usmap;
         }

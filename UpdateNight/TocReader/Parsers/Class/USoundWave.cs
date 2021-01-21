@@ -64,7 +64,7 @@ namespace UpdateNight.TocReader.Parsers.Class
         private void Serialize(PackageReader reader, Stream ubulk, long ubulkOffset)
         {
             // if UE4.25+ && Windows -> True
-            bStreaming = Global.Game.Version >= EPakVersion.PATH_HASH_INDEX;
+            bStreaming = true;
 
             bCooked = reader.ReadInt32() != 0;
             if (this.TryGetValue("bStreaming", out var v) && v is BoolProperty b)

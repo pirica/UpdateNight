@@ -7,6 +7,7 @@ using UpdateNight.TocReader.Parsers.PropertyTagData;
 using UpdateNight.TocReader.Parsers.Objects;
 using SkiaSharp;
 using System.IO;
+using System.Text.RegularExpressions;
 
 namespace UpdateNight.Source.Models
 {
@@ -19,7 +20,10 @@ namespace UpdateNight.Source.Models
         public string Description { get; set; }
         public string Type { get; set; }
         public string Rarity { get; set; }
+        
         public List<string> Tags { get; set; }
+        public string Source { get; set; }
+        public string Set { get; set; }
 
         public string ImagePath { get; set; }
         public SKImage Icon { get; set; }
@@ -57,6 +61,17 @@ namespace UpdateNight.Source.Models
             if (export.GetExport<StructProperty>("GameplayTags") is { } gameplayTags && gameplayTags.Value is FGameplayTagContainer g)
                 Tags = g.GameplayTags.Select(t => t.String).ToList();
 
+            // set
+            if (Tags.Any(t => t.StartsWith("Cosmetics.Set.")))
+                Set = Tags.Find(t => t.StartsWith("Cosmetics.Set."));
+
+            // source
+            if (Tags.Any(t => t.StartsWith("Cosmetics.Source.")))
+            {
+                string source = Tags.Find(t => t.StartsWith("Cosmetics.Source."));
+                Source = Utils.BuildSource(source);
+            }
+
             // image path, the advanced part
             if (export.GetExport<SoftObjectProperty>("DisplayAssetPath") is { } dpath)
                 ImagePath = dpath.Value.AssetPathName.String;
@@ -67,46 +82,61 @@ namespace UpdateNight.Source.Models
             else
             {
                 path = path.Split("/").Last();
-                path = path + "." + path;
-                string tpath = "/FortniteGame/Content/Catalog/MI_OfferImages/MI_" + path.Substring(0, path.LastIndexOf(".")).Replace("Athena_Commando_", "");
-                
+                string tpath = "/FortniteGame/Content/UI/Foundation/Textures/BattleRoyale/FeaturedItems/Outfit/T-AthenaSoldiers-" + path;
+                tpath = tpath.Replace("_" + tpath.Split("_").Last(), "");
+                tpath = Regex.Replace(tpath, @"_", "-");
                 var asset = Toc.GetAsset(tpath);
 
                 if (asset == null)
                 {
-                    string bop = tpath.Split("_").Last();
-                    tpath = tpath.Replace("_" + bop, "");
+                    tpath = Regex.Replace(tpath, @"-(M|F)-", "-");
                     asset = Toc.GetAsset(tpath);
                 }
 
-                if (asset != null)
+                if (asset != null && asset.ExportTypes.Any(e => e.String == "Texture2D"))
+                    ImagePath = tpath;
+                else
                 {
-                    IUExport aexport = asset.Exports[0];
+                    tpath = "/FortniteGame/Content/Catalog/MI_OfferImages/MI_" + path.Replace("Athena_Commando_", "");
 
-                    if (aexport.GetExport<ArrayProperty>("TextureParameterValues") is ArrayProperty textureParameterValues)
-                        foreach (StructProperty textureParameter in textureParameterValues.Value)
-                            if (textureParameter.Value is UObject parameter && parameter.TryGetValue("ParameterValue", out var i) && i is ObjectProperty value)
-                                ImagePath = value.Value.Resource.OuterIndex.Resource.ObjectName.String;
-                }
-                else if (export.GetExport<ObjectProperty>("HeroDefinition", "WeaponDefinition") is { } hd)
-                {
-                    string heropaath = hd.Value.Resource.OuterIndex.Resource.ObjectName.String.Replace("Game", "FortniteGame/Content");
-                    var hasset = Toc.GetAsset(heropaath);
+                    asset = Toc.GetAsset(tpath);
 
-                    if (hasset != null)
+                    if (asset == null)
                     {
-                        IUExport hexport = hasset.Exports[0];
+                        tpath = tpath.Replace("_" + tpath.Split("_").Last(), "");
+                        asset = Toc.GetAsset(tpath);
+                    }
 
-                        if (hexport.GetExport<SoftObjectProperty>("DisplayAssetPath") is { } hdpath)
-                            ImagePath = hdpath.Value.AssetPathName.String;
-                        else if (hexport.GetExport<SoftObjectProperty>("LargePreviewImage") is { } hlpath)
-                            ImagePath = hlpath.Value.AssetPathName.String;
-                        else if (export.GetExport<SoftObjectProperty>("SmallPreviewImage") is { } hspath)
-                            ImagePath = hspath.Value.AssetPathName.String;
+                    if (asset != null)
+                    {
+                        IUExport aexport = asset.Exports[0];
+
+                        if (aexport.GetExport<ArrayProperty>("TextureParameterValues") is ArrayProperty textureParameterValues)
+                            foreach (StructProperty textureParameter in textureParameterValues.Value)
+                                if (textureParameter.Value is UObject parameter && parameter.TryGetValue("ParameterValue", out var i) && i is ObjectProperty value)
+                                    ImagePath = value.Value.Resource.OuterIndex.Resource.ObjectName.String;
+                    }
+                    else if (export.GetExport<ObjectProperty>("HeroDefinition", "WeaponDefinition") is { } hd)
+                    {
+                        string heropaath = hd.Value.Resource.OuterIndex.Resource.ObjectName.String.Replace("Game", "FortniteGame/Content");
+                        var hasset = Toc.GetAsset(heropaath);
+
+                        if (hasset != null)
+                        {
+                            IUExport hexport = hasset.Exports[0];
+
+                            if (hexport.GetExport<SoftObjectProperty>("DisplayAssetPath") is { } hdpath)
+                                ImagePath = hdpath.Value.AssetPathName.String;
+                            else if (hexport.GetExport<SoftObjectProperty>("LargePreviewImage") is { } hlpath)
+                                ImagePath = hlpath.Value.AssetPathName.String;
+                            else if (export.GetExport<SoftObjectProperty>("SmallPreviewImage") is { } hspath)
+                                ImagePath = hspath.Value.AssetPathName.String;
+                        }
                     }
                 }
             }
-            if (!string.IsNullOrEmpty(ImagePath)) ImagePath = ImagePath.Replace("Game", "FortniteGame/Content").Split(".").First();
+            
+            if (!string.IsNullOrEmpty(ImagePath)) ImagePath = ImagePath.Replace("/Game/", "/FortniteGame/Content/").Split(".").First();
 
             // load image
             GetImage();

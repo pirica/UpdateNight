@@ -39,7 +39,7 @@ namespace UpdateNight.Grabbers
             var manfiest = new Manifest(manifestData, new ManifestOptions
             {
                 ChunkBaseUri = new Uri("http://epicgames-download1.akamaized.net/Builds/Fortnite/CloudDir/ChunksV3/", UriKind.Absolute),
-                ChunkCacheDirectory = Directory.CreateDirectory(Path.Combine(Global.current_path, "FortniteChunks"))
+                ChunkCacheDirectory = Directory.CreateDirectory(Path.Combine(Global.CurrentPath, "FortniteChunks"))
             });
 
 #if DEBUG

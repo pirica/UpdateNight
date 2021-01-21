@@ -27,13 +27,10 @@ namespace UpdateNight.TocReader.Parsers.Objects
 
             Mips = reader.ReadTArray(() => new FTexture2DMipMap(reader, ubulk, bulkOffset));
 
-            if (Global.Game.Version > EPakVersion.FNAME_BASED_COMPRESSION_METHOD || Global.Game.SubVersion == 1 && Global.Game.ActualGame != Global.EGame.Fortnite)
+            bIsVirtual = reader.ReadInt32() != 0;
+            if (bIsVirtual)
             {
-                bIsVirtual = reader.ReadInt32() != 0;
-                if (bIsVirtual)
-                {
-                    VTData = new FVirtualTextureBuiltData(reader, ubulk, bulkOffset);
-                }
+                VTData = new FVirtualTextureBuiltData(reader, ubulk, bulkOffset);
             }
         }
     }
