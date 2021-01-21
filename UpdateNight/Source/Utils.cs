@@ -88,5 +88,18 @@ namespace UpdateNight.Source
             var index = s.LastIndexOf(delimiter, comparisonType);
             return index == -1 ? s : s.Substring(0, index);
         }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static string GetReadableSize(double size)
+        {
+            string[] sizes = { "B", "KB", "MB", "GB", "TB" };
+            int order = 0;
+            while (size >= 1024 && order < sizes.Length - 1)
+            {
+                order++;
+                size /= 1024;
+            }
+            return string.Format("{0:# ###.##} {1}", size, sizes[order]).TrimStart();
+        }
     }
 }

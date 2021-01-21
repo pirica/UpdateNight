@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Net.Http;
 using Newtonsoft.Json;
 
 namespace UpdateNight.Grabbers
@@ -13,8 +13,8 @@ namespace UpdateNight.Grabbers
     {
         // cache, maybe ?
         public static Dictionary<string, string> Keys = new Dictionary<string, string>();
-        private static bool _fetched = false;
-        private static bool _newKey = false;
+        private static bool _fetched;
+        private static bool _newKey;
         private static readonly HttpClient Client = new HttpClient();
 
         public static async Task WaitUntilNewKey()

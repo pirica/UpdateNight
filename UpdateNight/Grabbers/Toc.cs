@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using UpdateNight.TocReader.IO;
 using EpicManifestParser.Objects;
 using UpdateNight.Source;
 using UpdateNight.TocReader;
 using System.Threading.Tasks;
+using Utils = UpdateNight.Source.Utils;
 
 namespace UpdateNight.Grabbers
 {
@@ -73,6 +73,10 @@ namespace UpdateNight.Grabbers
                     Console.Write(", Guid: ");
                     Console.ForegroundColor = ConsoleColor.Cyan;
                     Console.Write(ioStore.TocResource.Header.EncryptionKeyGuid);
+                    Console.ForegroundColor = ConsoleColor.White;
+                    Console.Write(", Size: ");
+                    Console.ForegroundColor = ConsoleColor.Magenta;
+                    Console.Write(Strings.GetReadableSize((double)ioStore.ContainerFile.FileSize));
                     Console.ForegroundColor = ConsoleColor.White;
                     Console.Write("]");
                     
