@@ -1,32 +1,34 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Net.Http;
 using Newtonsoft.Json;
-using RestSharp;
 
 namespace UpdateNight.Grabbers
 {
     class Aes
     {
         // cache, maybe ?
-        public static Dictionary<string, string> keys = new Dictionary<string, string>();
+        public static Dictionary<string, string> Keys = new Dictionary<string, string>();
         private static bool _fetched = false;
-        private static bool newKey = false;
+        private static bool _newKey = false;
+        private static readonly HttpClient Client = new HttpClient();
 
-        public static Task WaitUntilNewKey()
+        public static async Task WaitUntilNewKey()
         {
-            if (_fetched) return Task.CompletedTask;
+            if (_fetched) return;
 
-            while (!newKey)
+            while (!_newKey)
             {
-                Response resa = Grab();
+                Response resa = await Grab();
                 if (resa.Status != 200) continue;
                 AES res = resa.Data;
                 if (res.Version == Global.version)
                 {
-                    newKey = true;
+                    _newKey = true;
                     Console.Write($"[{Global.BuildTime()}] ");
                     Console.ForegroundColor = ConsoleColor.Green;
                     Console.Write("[AES Grabber] ");
@@ -46,19 +48,21 @@ namespace UpdateNight.Grabbers
                     Console.WriteLine("\n");
                     _fetched = true;
                 }
-                if (!newKey) Thread.Sleep(1000);
+                if (!_newKey) Thread.Sleep(1000);
             }
-
-            return Task.CompletedTask;
+            
         }
 
-        public static Response Grab()
-        {
-            var request = new RestClient("https://fortnite-api.com/v2/aes");
-            var response = request.Execute(new RestRequest());
-
-            Response res = JsonConvert.DeserializeObject<Response>(response.Content);
-            keys = res.Data.DynamicKeys.ToDictionary(v => "FortniteGame/Content/Paks/" + v.PakName, v => v.Key);
+        public static async Task<Response> Grab()
+        { 
+            using HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, "https://fortnite-api.com/v2/aes");
+            var response = await Client.SendAsync(request).ConfigureAwait(false);
+            if (response.StatusCode != HttpStatusCode.OK)
+                throw new Exception($"Request failed with {(int) response.StatusCode} status code");
+            
+            string data = await response.Content.ReadAsStringAsync();
+            Response res = JsonConvert.DeserializeObject<Response>(data);
+            Keys = res.Data.DynamicKeys.ToDictionary(v => "FortniteGame/Content/Paks/" + v.PakName, v => v.Key);
             return res;
         }
     }

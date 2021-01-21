@@ -44,7 +44,7 @@ namespace UpdateNight.Grabbers
                 if (ioStore.IsEncrypted)
                 {
                     // await Aes.WaitUntilNewKey();
-                    if (Aes.keys.TryGetValue(file, out string key)) ioStore.AesKey = key.ToUpperInvariant().Trim().ToBytesKey();
+                    if (Aes.Keys.TryGetValue(file, out string key)) ioStore.AesKey = key.ToUpperInvariant().Trim().ToBytesKey();
                 }
 
                 if (!ioStore.IsEncrypted || (ioStore.IsEncrypted && ioStore.AesKey != null))

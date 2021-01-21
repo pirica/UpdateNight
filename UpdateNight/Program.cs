@@ -97,7 +97,7 @@ namespace UpdateNight
 
             // File Comparision
             List<string> OldFiles = (await File.ReadAllLinesAsync(Path.Combine(Global.current_path, "out", old_version.Replace(".", "_"), "files.txt"))).ToList();
-            NewFiles = Source.Utils.GetNewFiles(OldFiles, Source.Utils.BuildFileList());
+            NewFiles = Utils.GetNewFiles(OldFiles, Source.Utils.BuildFileList());
             await File.WriteAllLinesAsync(Path.Combine(Global.current_path, "out", Global.version.Substring(19, 5).Replace(".", "_"), "files.txt"), Source.Utils.BuildFileList());
 
             // Functions
