@@ -28,12 +28,21 @@ namespace UpdateNight
             // Start
             Global.Print(ConsoleColor.Magenta, "Update Night", $"Started Update Night v{Assembly.GetExecutingAssembly().GetName().Version} made by Command");
 
+            bool Force = false;
+
             Console.WriteLine();
             Console.Write("Please enter the fortnite build to compare: ");
             string old_version = Console.ReadLine();
             if (old_version.Length == 44) old_version = old_version.Substring(19, 5);
+            else if (old_version == "force") Force = true;
             else if (old_version.Length != 5) Global.Exit(0, "Invalid build format!");
             Console.WriteLine();
+
+            if (Force)
+            {
+                ManifestInfo info = await Grabbers.ManifestGrabber.GrabInfo();
+                old_version = info.BuildVersion.Substring(19, 5);
+            }
 
             Global.Check(old_version);
 
@@ -42,7 +51,7 @@ namespace UpdateNight
             while (!newVersion)
             {
                 ManifestInfo info = await Grabbers.ManifestGrabber.GrabInfo();
-                if (info.BuildVersion.Substring(19, 5) != old_version)
+                if (Force || info.BuildVersion.Substring(19, 5) != old_version)
                 {
                     newVersion = true;
                     Global.Version = info.BuildVersion;
@@ -103,9 +112,11 @@ namespace UpdateNight
             // File Comparision
             Global.Print(ConsoleColor.Green, "File Manager", "Building file list...");
             List<string> CurrentFiles = Utils.BuildFileList();
-            List<string> OldFiles = (await File.ReadAllLinesAsync(Path.Combine(Global.CurrentPath, "out", old_version.Replace(".", "_"), "files.txt"))).ToList();
+            DirectoryInfo directory = new DirectoryInfo(Path.Combine(Global.CurrentPath, "out", old_version.Replace(".", "_")));
+            List<string> OldFiles = (await File.ReadAllLinesAsync(directory.GetFiles().Where(f => f.Name.StartsWith("files") && f.Name.EndsWith(".txt")).OrderByDescending(f => f.LastWriteTime).First().FullName)).ToList();
             NewFiles = Utils.GetNewFiles(OldFiles, CurrentFiles);
-            await File.WriteAllLinesAsync(Path.Combine(Global.OutPath, "files.txt"), CurrentFiles);
+            if (Force) directory = new DirectoryInfo(Path.Combine(Global.CurrentPath, "out", Global.Version.Substring(19, 5).Replace(".", "_")));
+            await File.WriteAllLinesAsync(Path.Combine(Global.OutPath, $"files-{(!Force ? "0" : ((int.Parse(directory.GetFiles().Where(f => f.Name.StartsWith("files") && f.Name.EndsWith(".txt")).OrderByDescending(f => f.LastWriteTime).First().Name.Split("-").Last().Split(".").First())) + 1).ToString())}.txt"), CurrentFiles);
             Global.Print(ConsoleColor.Green, "File Manager", "Built file list");
 
             Console.WriteLine();
@@ -143,32 +154,36 @@ namespace UpdateNight
                 CosmeticsData.Add(cosmetic);
             }
 
-            Console.WriteLine();
-            // TODO: Sort this property
-            /* List<string> types = CosmeticsData.Select(c => c.Type).ToList();
-            types = types.Distinct().ToList();
-            foreach (string type in types)
+            if (CosmeticsData.Count > 0)
             {
-                List<Cosmetic> data = CosmeticsData.Where(c => c.Type == type).ToList();
-                data = data.OrderBy(c => c.Name).ThenBy(c => c.Rarity)
-                            .ThenBy(c => Source.Utils.BuildRarity(c.Rarity)).ThenBy(c => c.Type).ToList();
-                Image.Collage(data.Select(c => c.Canvas).ToArray(), type);
+                Console.WriteLine();
+
+                // TODO: Sort this property
+                /* List<string> types = CosmeticsData.Select(c => c.Type).ToList();
+                types = types.Distinct().ToList();
+                foreach (string type in types)
+                {
+                    List<Cosmetic> data = CosmeticsData.Where(c => c.Type == type).ToList();
+                    data = data.OrderBy(c => c.Name).ThenBy(c => c.Rarity)
+                                .ThenBy(c => Source.Utils.BuildRarity(c.Rarity)).ThenBy(c => c.Type).ToList();
+                    Image.Collage(data.Select(c => c.Canvas).ToArray(), type);
+                }
+
+                List<string> sets = CosmeticsData.Where(c => !string.IsNullOrEmpty(c.Set)).Select(c => c.Set).ToList();
+                sets = sets.Distinct().ToList();
+                foreach (string set in sets)
+                {
+                    List<Cosmetic> data = CosmeticsData.Where(c => c.Set == set).ToList();
+                    data = data.OrderBy(c => c.Name).ThenBy(c => c.Rarity)
+                                .ThenBy(c => Source.Utils.BuildRarity(c.Rarity)).ThenBy(c => c.Type).ToList();
+                    Image.Collage(data.Select(c => c.Canvas).ToArray(), set);
+                } */
+
+                Image.Collage(CosmeticsData.OrderBy(c => c.Name).ThenBy(c => Utils.BuildRarity(c.Rarity))
+                    .Select(c => c.Canvas).ToArray(), "All");
+
+                Console.WriteLine();
             }
-
-            List<string> sets = CosmeticsData.Where(c => !string.IsNullOrEmpty(c.Set)).Select(c => c.Set).ToList();
-            sets = sets.Distinct().ToList();
-            foreach (string set in sets)
-            {
-                List<Cosmetic> data = CosmeticsData.Where(c => c.Set == set).ToList();
-                data = data.OrderBy(c => c.Name).ThenBy(c => c.Rarity)
-                            .ThenBy(c => Source.Utils.BuildRarity(c.Rarity)).ThenBy(c => c.Type).ToList();
-                Image.Collage(data.Select(c => c.Canvas).ToArray(), set);
-            } */
-
-            Image.Collage(CosmeticsData.OrderBy(c => c.Name).ThenBy(c => Utils.BuildRarity(c.Rarity))
-                .Select(c => c.Canvas).ToArray(), "All");
-
-            Console.WriteLine();
 
             return Task.CompletedTask;
         }

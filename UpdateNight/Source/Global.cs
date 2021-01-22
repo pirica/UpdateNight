@@ -2,12 +2,10 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Reflection;
+using System.Linq;
 using System.Threading;
 using UsmapNET.Classes;
-using UpdateNight.TocReader.Parsers.Objects;
 using System.Diagnostics;
-using UpdateNight.Source;
 
 public class Global
 {
@@ -50,16 +48,20 @@ public class Global
     public static void Check(string OldVersion)
     {
         bool oodleExists = File.Exists(Path.Combine(CurrentPath, "oo2core_8_win64.dll"));
-        if (!oodleExists) Exit(0, "Could not locate oodle dll (oo2core_8_win64.dll) in the working directory");
+        if (!oodleExists) Exit(0, "Could not locate oodle dll (oo2core_8_win64.dll) in the working directory", true);
 
         bool assetsExists = Directory.Exists(AssetsPath);
-        if (!assetsExists) Exit(0, "Assets folder does not exists");
+        if (!assetsExists) Exit(0, "Assets folder does not exists", true);
 
         bool outExists = Directory.Exists(Path.Combine(CurrentPath, "out"));
-        if (!outExists) Exit(0, "Output folder doesnt exists");
+        if (!outExists) Exit(0, "Output folder doesnt exists", true);
 
         bool outbopExists = Directory.Exists(Path.Combine(CurrentPath, "out", (OldVersion.Length == 5 ? OldVersion : OldVersion.Substring(19, 5)).Replace(".", "_")));
-        if (!outbopExists) Exit(0, "Could not find the files to compare");
+        if (!outbopExists) Exit(0, "Could not find old folder to compare", true);
+
+        DirectoryInfo directory = new DirectoryInfo(Path.Combine(CurrentPath, "out", (OldVersion.Length == 5 ? OldVersion : OldVersion.Substring(19, 5)).Replace(".", "_")));
+        bool outbopfileExists = directory.GetFiles().Any(f => f.Name.StartsWith("file") && f.Name.EndsWith(".txt"));
+        if (!outbopfileExists) Exit(0, "Could not find old files to compare", true);
     }
 
     public static void CreateOut()
@@ -71,10 +73,11 @@ public class Global
         Directory.CreateDirectory(Path.Combine(OutPath, "ui"));
     }
 
-    public static void Exit(int code) => Exit(code, null);
-    public static void Exit(int code, string message)
+    public static void Exit(int code) => Exit(code, null, false);
+    public static void Exit(int code, string message) => Exit(code, message, false);
+    public static void Exit(int code, string message, bool error = false)
     {
-        if (message != null) Print(ConsoleColor.Magenta, "Update Night", message);
+        if (message != null) Print(error ? ConsoleColor.Red : ConsoleColor.Magenta, error ? "Error" : "Update Night", message);
         Thread.Sleep(10000);
         Environment.Exit(code);
     }
