@@ -137,6 +137,7 @@ namespace UpdateNight.Source
                 SKImageInfo info = new SKImageInfo((int)width * 1024, (int)height * 1024);
                 SKSurface surface = SKSurface.Create(info);
                 SKCanvas canvas = surface.Canvas;
+                canvas.Clear(SKColor.Parse("#292a29"));
                 
                 int x = 0;
                 int y = 0;
