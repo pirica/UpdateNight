@@ -11,7 +11,6 @@ using System.IO;
 using System.Collections.Generic;
 using UpdateNight.Source;
 using UpdateNight.Source.Models;
-using UpdateNight.TocReader.Parsers.Objects;
 using UpdateNight.TocReader.Parsers.PropertyTagData;
 
 namespace UpdateNight
@@ -123,9 +122,9 @@ namespace UpdateNight
             Console.WriteLine();
 
             // Functions
-            // await GetCosmetics();
+            await GetCosmetics();
             await GetMap();
-            // await ExtractUi();
+            await ExtractUi();
 
             // End program
             End = DateTime.UtcNow;
