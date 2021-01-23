@@ -20,7 +20,7 @@ namespace UpdateNight.Source.Models
         public string Description { get; set; }
         public string Type { get; set; }
         public string Rarity { get; set; }
-        
+
         public List<string> Tags { get; set; }
         public string Source { get; set; }
         public string Set { get; set; }
@@ -30,7 +30,7 @@ namespace UpdateNight.Source.Models
         public SKImage Canvas { get; set; }
         private bool ForceQuestionMark { get; set; }
 
-        public Cosmetic(IoPackage data, string path )
+        public Cosmetic(IoPackage data, string path)
         {
             Id = path.Split("/").Last();
             Path = path;
@@ -135,7 +135,7 @@ namespace UpdateNight.Source.Models
                     }
                 }
             }
-            
+
             if (!string.IsNullOrEmpty(ImagePath)) ImagePath = ImagePath.Replace("/Game/", "/FortniteGame/Content/").Split(".").First();
 
             // load image
@@ -172,6 +172,46 @@ namespace UpdateNight.Source.Models
                 SKImage image = texture.Image;
                 Icon = image;
             }
+        }
+    }
+
+    class POI
+    {
+        public string Name { get; set; }
+        public float X { get; set; }
+        public float Y { get; set; }
+
+        public string Tag { get; set; }
+        public bool IsBigPoi { get; set; } // dont know the name so lets call a big poi 
+        public List<string> CalendarEventsRequired { get; set; }
+
+        public POI(UObject data)
+        {
+            Name = "???";
+            if (data.GetExport<TextProperty>("Text") is { } n && n.Value is { } nt && nt.Text is FTextHistory.Base nb)
+                Name = nb.SourceString;
+
+            if (data.GetExport<StructProperty>("LocationTag") is { } at && at.Value is UObject bt
+                && bt.GetExport<NameProperty>("TagName") is { } ct)
+                Tag = ct.Value.String;
+
+            IsBigPoi = false;
+            if (!string.IsNullOrEmpty(Tag)) IsBigPoi = !Tag.ToLower().Contains("unnamedpoi");
+            
+            X = 0;
+            Y = 0;
+            int WorldRadius = 135000;
+            if (data.GetExport<StructProperty>("WorldLocation") is { } awl && awl.Value is FVector bop)
+            {
+                X = (bop.Y + WorldRadius) / (WorldRadius * 2) * 2048;
+                Y = (1 - (bop.X + WorldRadius) / (WorldRadius * 2)) * 2048;
+            }
+
+            CalendarEventsRequired = new List<string>();
+            if (data.GetExport<ArrayProperty>("CalendarEventsRequired") is { } cer)
+                foreach (var info in cer.Value)
+                    if (info is StrProperty str)
+                        CalendarEventsRequired.Add(str.Value);
         }
     }
 }

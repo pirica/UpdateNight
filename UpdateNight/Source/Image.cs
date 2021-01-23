@@ -126,6 +126,42 @@ namespace UpdateNight.Source
             Global.Print(ConsoleColor.Green, "Cosmetic Manager", $"Saved image of {cosmetic.Id}");
         }
 
+        public static void Map(SKImage map, List<POI> pois)
+        {
+            SKImageInfo info = new SKImageInfo(2048, 2048);
+            SKSurface surface = SKSurface.Create(info);
+            SKCanvas canvas = surface.Canvas;
+
+            canvas.DrawImage(map, new SKRectI(0, 0, 2048, 2048));
+
+            int count = 0;
+            pois = pois.OrderBy(p => p.IsBigPoi).ToList();
+            foreach (var poi in pois)
+            {
+                SKPaint Paint = new SKPaint
+                {
+                    Color = poi.IsBigPoi ? SKColors.White : SKColors.Yellow,
+                    Style = SKPaintStyle.Fill,
+                    // StrokeWidth = 2,
+                    TextAlign = SKTextAlign.Center,
+                    TextSize = poi.IsBigPoi ? 45 : 25,
+                    Typeface = SKTypeface.FromFile(Path.Combine(Global.AssetsPath, "fonts", "italic.otf"))
+                };
+                canvas.DrawText(poi.Name, new SKPoint(poi.X, poi.Y), Paint);
+
+                count++;
+                if (count == pois.Count)
+                {
+                    var image = surface.Snapshot();
+                    var data = image.Encode(SKEncodedImageFormat.Png, 100);
+                    var stream = File.OpenWrite(Path.Combine(Global.OutPath, "map_pois.png"));
+                    data.SaveTo(stream);
+                    stream.Close();
+                    Global.Print(ConsoleColor.Green, "Map", "Saved map image with POIs");
+                }
+            }
+        }
+
         public static void Collage(List<SKImage> images, string name) => Collage(images.ToArray(), name);
         public static void Collage(SKImage[] images, string name)
         {

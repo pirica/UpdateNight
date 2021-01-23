@@ -70,7 +70,7 @@ namespace UpdateNight.Grabbers
                     Console.Write(ioStore.TocResource.Header.EncryptionKeyGuid);
                     Console.ForegroundColor = ConsoleColor.White;
                     Console.Write(", Size: ");
-                    Console.ForegroundColor = ConsoleColor.Magenta;
+                    Console.ForegroundColor = ConsoleColor.Green;
                     Console.Write(Strings.GetReadableSize((double)ioStore.ContainerFile.FileSize));
                     Console.ForegroundColor = ConsoleColor.White;
                     Console.Write("]");

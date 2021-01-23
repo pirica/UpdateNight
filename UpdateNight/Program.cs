@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using UpdateNight.Source;
 using UpdateNight.Source.Models;
 using UpdateNight.TocReader.Parsers.Objects;
+using UpdateNight.TocReader.Parsers.PropertyTagData;
 
 namespace UpdateNight
 {
@@ -122,9 +123,9 @@ namespace UpdateNight
             Console.WriteLine();
 
             // Functions
-            await GetCosmetics();
+            // await GetCosmetics();
             await GetMap();
-            await ExtractUi();
+            // await ExtractUi();
 
             // End program
             End = DateTime.UtcNow;
@@ -212,6 +213,27 @@ namespace UpdateNight
             stream.Close();
 
             Global.Print(ConsoleColor.Green, "Map", "Saved map image");
+
+            asset = Toc.GetAsset("/FortniteGame/Content/Quests/QuestIndicatorData");
+            if (asset == null)
+            {
+                Global.Print(ConsoleColor.Red, "Error", "Could not get the asset for POIs");
+                return Task.CompletedTask;
+            }
+
+            IUExport export = asset.Exports[0];
+            List<POI> Pois = new List<POI>();
+
+            if (export.GetExport<ArrayProperty>("ChallengeMapPoiData") is { } adata)
+                foreach (var bdata in adata.Value)
+                    if (bdata is StructProperty cdata && cdata.Value is UObject info)
+                    {
+                        POI Poi = new POI(info);
+                        if (Poi.Tag.Contains("Athena.Location.POI.Papaya.") || Poi.CalendarEventsRequired.Count >= 1) continue;
+                        Pois.Add(Poi);
+                    }
+
+            Image.Map(image, Pois);
             Console.WriteLine();
 
             return Task.CompletedTask;
