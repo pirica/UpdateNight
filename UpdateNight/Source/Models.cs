@@ -83,24 +83,24 @@ namespace UpdateNight.Source.Models
             else
             {
                 path = path.Split("/").Last();
-                string tpath = "/FortniteGame/Content/UI/Foundation/Textures/BattleRoyale/FeaturedItems/Outfit/T-AthenaSoldiers-" + path;
-                tpath = tpath.Replace("_" + tpath.Split("_").Last(), "");
-                tpath = Regex.Replace(tpath, @"_", "-");
-                var asset = Toc.GetAsset(tpath);
+                string temppath = "/FortniteGame/Content/UI/Foundation/Textures/BattleRoyale/FeaturedItems/Outfit/T-AthenaSoldiers-" + path;
+                temppath = temppath.Replace("_" + temppath.Split("_").Last(), "");
+                temppath = Regex.Replace(temppath, @"_", "-");
+                var asset = Toc.GetAsset(temppath);
 
                 if (asset == null)
                 {
-                    tpath = Regex.Replace(tpath, @"-(M|F)-", "-");
-                    asset = Toc.GetAsset(tpath);
+                    temppath = Regex.Replace(temppath, @"-(M|F)-", "-");
+                    asset = Toc.GetAsset(temppath);
                 }
 
                 if (asset != null && asset.ExportTypes.Any(e => e.String == "Texture2D"))
-                    ImagePath = tpath;
+                    ImagePath = temppath;
                 else
                 {
                     temppath = "/FortniteGame/Content/Catalog/MI_OfferImages/MI_" + path.Replace("Athena_Commando_", "");
 
-                    var asset = Toc.GetAsset(temppath);
+                    asset = Toc.GetAsset(temppath);
 
                     if (asset == null)
                     {
