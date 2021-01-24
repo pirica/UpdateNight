@@ -110,15 +110,7 @@ namespace UpdateNight
             Console.WriteLine();
 
             // File Comparision
-            Global.Print(ConsoleColor.Green, "File Manager", "Building file list...");
-            List<string> CurrentFiles = Utils.BuildFileList();
-            DirectoryInfo directory = new DirectoryInfo(Path.Combine(Global.CurrentPath, "out", old_version.Replace(".", "_")));
-            List<string> OldFiles = (await File.ReadAllLinesAsync(directory.GetFiles().Where(f => f.Name.StartsWith("files") && f.Name.EndsWith(".txt")).OrderByDescending(f => f.LastWriteTime).First().FullName)).ToList();
-            NewFiles = Utils.GetNewFiles(OldFiles, CurrentFiles);
-            if (Force) directory = new DirectoryInfo(Path.Combine(Global.CurrentPath, "out", Global.Version.Substring(19, 5).Replace(".", "_")));
-            await File.WriteAllLinesAsync(Path.Combine(Global.OutPath, $"files-{(!Force ? "0" : ((int.Parse(directory.GetFiles().Where(f => f.Name.StartsWith("files") && f.Name.EndsWith(".txt")).OrderByDescending(f => f.LastWriteTime).First().Name.Split("-").Last().Split(".").First())) + 1).ToString())}.txt"), CurrentFiles);
-            Global.Print(ConsoleColor.Green, "File Manager", "Built file list");
-
+            NewFiles = await Utils.GetNewFiles(Force, old_version);
             Console.WriteLine();
 
             // Functions
@@ -136,10 +128,15 @@ namespace UpdateNight
         static Task GetCosmetics()
         {
             List<Cosmetic> CosmeticsData = new List<Cosmetic>();
-            foreach (string path in NewFiles)
+            List<string> Files = NewFiles.Where(f =>
+                f.StartsWith("/FortniteGame/Content/Athena/Items/Cosmetics/")
+                || f.StartsWith("/FortniteGame/Content/Athena/Items/CosmeticVariantTokens/")).ToList();
+
+            Global.Print(ConsoleColor.Green, "Cosmetic Manager", $"{(Files.Count < 1 ? "No" : Files.Count.ToString())} new cosmetics");
+            Console.WriteLine();
+
+            foreach (string path in Files)
             {
-                if (!(path.StartsWith("/FortniteGame/Content/Athena/Items/Cosmetics/") ||
-                      path.StartsWith("/FortniteGame/Content/Athena/Items/CosmeticVariantTokens/"))) continue;
                 if (path.Contains("Series")) continue;
 
                 IoPackage asset = Toc.GetAsset(path);

@@ -58,6 +58,7 @@ namespace UpdateNight.Source.Models
                 Rarity = "Uncommon";
 
             // tags
+            Tags = new List<string>();
             if (export.GetExport<StructProperty>("GameplayTags") is { } gameplayTags && gameplayTags.Value is FGameplayTagContainer g)
                 Tags = g.GameplayTags.Select(t => t.String).ToList();
 
@@ -69,7 +70,7 @@ namespace UpdateNight.Source.Models
             if (Tags.Any(t => t.StartsWith("Cosmetics.Source.")))
             {
                 string source = Tags.Find(t => t.StartsWith("Cosmetics.Source."));
-                Source = Utils.BuildSource(source);
+                Source = Utils.Localization.BuildSource(source);
             }
 
             // image path, the advanced part
@@ -97,14 +98,14 @@ namespace UpdateNight.Source.Models
                     ImagePath = tpath;
                 else
                 {
-                    tpath = "/FortniteGame/Content/Catalog/MI_OfferImages/MI_" + path.Replace("Athena_Commando_", "");
+                    temppath = "/FortniteGame/Content/Catalog/MI_OfferImages/MI_" + path.Replace("Athena_Commando_", "");
 
-                    asset = Toc.GetAsset(tpath);
+                    var asset = Toc.GetAsset(temppath);
 
                     if (asset == null)
                     {
-                        tpath = tpath.Replace("_" + tpath.Split("_").Last(), "");
-                        asset = Toc.GetAsset(tpath);
+                        temppath = temppath.Replace("_" + temppath.Split("_").Last(), "");
+                        asset = Toc.GetAsset(temppath);
                     }
 
                     if (asset != null)

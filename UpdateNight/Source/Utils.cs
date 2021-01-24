@@ -7,13 +7,45 @@ using UpdateNight.TocReader.Parsers.PropertyTagData;
 using UpdateNight.TocReader.IO;
 using UpdateNight.TocReader.Parsers.Class;
 using UpdateNight.TocReader.Parsers.Objects;
+using System.IO;
+using System.Threading.Tasks;
 
 namespace UpdateNight.Source
 {
     class Utils
     {
-        public static List<string> GetNewFiles(List<string> old, List<string> current) => current.Except(old).ToList();
+        public static List<string> DiffFiles(List<string> old, List<string> current) => current.Except(old).ToList();
         public static List<string> BuildFileList() => Global.assetmapping.Keys.ToList();
+        public static async Task<List<string>> GetNewFiles(bool Force, string old_version)
+        {
+            DateTime Start = DateTime.UtcNow;
+
+            Global.Print(ConsoleColor.Green, "File Manager", "Building file list...");
+            
+            List<string> CurrentFiles = BuildFileList();
+            DirectoryInfo directory = new DirectoryInfo(Path.Combine(Global.CurrentPath, "out", old_version.Replace(".", "_")));
+            List<string> OldFiles = (await File.ReadAllLinesAsync(directory.GetFiles().Where(f => f.Name.StartsWith("files-") && f.Name.EndsWith(".txt")).OrderByDescending(f => f.LastWriteTime).First().FullName)).ToList();
+            List<string> NewFiles = DiffFiles(OldFiles, CurrentFiles);
+            if (Force) directory = new DirectoryInfo(Path.Combine(Global.CurrentPath, "out", Global.Version.Substring(19, 5).Replace(".", "_")));
+            await File.WriteAllLinesAsync(Path.Combine(Global.OutPath, $"files-{(!Force ? "0" : (int.Parse(directory.GetFiles().Where(f => f.Name.StartsWith("files") && f.Name.EndsWith(".txt")).OrderByDescending(f => f.LastWriteTime).First().Name.Split("-").Last().Split(".").First()) + 1).ToString())}.txt"), CurrentFiles);
+            
+            DateTime End = DateTime.UtcNow;
+            TimeSpan Dur = End.Subtract(Start);
+            Console.Write($"[{Global.BuildTime()}] ");
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.Write("[File Manager] ");
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.Write("Built file list");
+#if DEBUG
+            Console.Write(" in ");
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.Write(Dur.ToString("T").Replace(",", "."));
+            Console.ForegroundColor = ConsoleColor.White;
+#endif
+            Console.WriteLine();
+
+            return NewFiles;
+        }
 
         public static int BuildRarity(string rarity)
         {
@@ -23,21 +55,6 @@ namespace UpdateNight.Source
             if (rarity == "Uncommon") return 2;
             if (rarity == "Common") return 1;
             return 5;
-        }
-
-        public static string BuildSource(string source)
-        {
-            if (source.StartsWith("Cosmetics.Source.Season"))
-            {
-                string tag = Regex.Replace(source, @"[0-9]", "");
-                if (Localization.SourceNames.TryGetValue(tag, out var text))
-                    return text;
-            }
-
-            if (source.StartsWith("Cosmetics.Source.Platform.")) return source.Replace("Cosmetics.Source.Platform.", "");
-            if (source.StartsWith("Cosmetics.Source.RMT.")) return source.Replace("Cosmetics.Source.RMT.", "");
-
-            return Regex.Replace(source.Replace("Cosmetics.Source.", ""), "[.]", " ");
         }
 
         public static class Localization
@@ -74,6 +91,21 @@ namespace UpdateNight.Source
                 SourceNames.Add("Cosmetics.Source.Season.BattlePass.Free", "Battle Pass (Free)");
                 SourceNames.Add("Cosmetics.Source.Season.BattlePass.Paid.Additional", "Battle Pass (Paid) Additional");
                 SourceNames.Add("Cosmetics.Source.Season.FirstWin", "Season First Win");
+            }
+
+            public static string BuildSource(string source)
+            {
+                if (source.StartsWith("Cosmetics.Source.Season"))
+                {
+                    string tag = Regex.Replace(source, @"[0-9]", "");
+                    if (Localization.SourceNames.TryGetValue(tag, out var text))
+                        return text;
+                }
+
+                if (source.StartsWith("Cosmetics.Source.Platform.")) return source.Replace("Cosmetics.Source.Platform.", "");
+                if (source.StartsWith("Cosmetics.Source.RMT.")) return source.Replace("Cosmetics.Source.RMT.", "");
+
+                return Regex.Replace(source.Replace("Cosmetics.Source.", ""), "[.]", " ");
             }
         }
     }
