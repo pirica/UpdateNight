@@ -142,12 +142,13 @@ namespace UpdateNight.Source
                 {
                     Color = poi.IsBigPoi ? SKColors.White : SKColors.Yellow,
                     Style = SKPaintStyle.Fill,
-                    // StrokeWidth = 2,
+                    StrokeWidth = 2,
                     TextAlign = SKTextAlign.Center,
-                    TextSize = poi.IsBigPoi ? 45 : 25,
+                    TextSize = poi.IsBigPoi ? 23 : 20,
                     Typeface = SKTypeface.FromFile(Path.Combine(Global.AssetsPath, "fonts", "italic.otf"))
                 };
-                canvas.DrawText(poi.Name, new SKPoint(poi.X, poi.Y), Paint);
+                canvas.DrawText(poi.Name, new SKPoint(poi.X + 15, poi.Y + 3), Paint);
+                canvas.DrawText(".", new SKPoint(poi.X + 10, poi.Y + 15), Paint);
 
                 count++;
                 if (count == pois.Count)

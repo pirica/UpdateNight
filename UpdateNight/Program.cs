@@ -122,9 +122,9 @@ namespace UpdateNight
             Console.WriteLine();
 
             // Functions
-            await GetCosmetics();
+       //     await GetCosmetics();
             await GetMap();
-            await ExtractUi();
+       //     await ExtractUi();
 
             // End program
             End = DateTime.UtcNow;
@@ -229,6 +229,7 @@ namespace UpdateNight
                     {
                         POI Poi = new POI(info);
                         if (Poi.Tag.Contains("Athena.Location.POI.Papaya.") || Poi.CalendarEventsRequired.Count >= 1) continue;
+                        if (Poi.Name == "Quadcrasher Motocross" || Poi.Name == "Soccer Pitch") continue;
                         Pois.Add(Poi);
                     }
 
