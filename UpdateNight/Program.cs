@@ -122,9 +122,9 @@ namespace UpdateNight
             Console.WriteLine();
 
             // Functions
-       //     await GetCosmetics();
+            await GetCosmetics();
             await GetMap();
-       //     await ExtractUi();
+            await ExtractUi();
 
             // End program
             End = DateTime.UtcNow;
