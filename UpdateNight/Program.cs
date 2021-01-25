@@ -117,6 +117,7 @@ namespace UpdateNight
             await GetCosmetics();
             await GetMap();
             await ExtractUi();
+            await GetWeapons();
 
             // End program
             End = DateTime.UtcNow;
@@ -267,6 +268,30 @@ namespace UpdateNight
             }
 
 
+            return Task.CompletedTask;
+        }
+
+        static Task GetWeapons()
+        {
+            List<string> Files = NewFiles.Where(f =>
+                f.StartsWith("/FortniteGame/Plugins/GameFeatures/NightmareGameplay/Content/Items/") && f.Contains("WID")).ToList();
+
+            Global.Print(ConsoleColor.Green, "Cosmetic Manager", $"{(Files.Count < 1 ? "No" : Files.Count.ToString())} new weapons");
+            Console.WriteLine();
+
+            foreach (string path in Files)
+            {
+                IoPackage asset = Toc.GetAsset(path);
+                if (asset == null)
+                {
+                    Global.Print(ConsoleColor.Red, "Error", $"Could not get the asset for {path.Split("/").Last()}");
+                    continue;
+                }
+
+                Weapon weapon = new Weapon(asset, path);
+                Image.Weapon(weapon);
+            }
+            
             return Task.CompletedTask;
         }
     }

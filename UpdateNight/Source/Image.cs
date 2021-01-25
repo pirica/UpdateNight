@@ -125,6 +125,75 @@ namespace UpdateNight.Source
             stream.Close();
             Global.Print(ConsoleColor.Green, "Cosmetic Manager", $"Saved image of {cosmetic.Id}");
         }
+        public static void Weapon(Weapon weapon)
+        {
+            SKImageInfo info = new SKImageInfo(1024, 1024);
+            SKSurface surface = SKSurface.Create(info);
+            SKCanvas canvas = surface.Canvas;
+
+            SKImage rarity_bg = rarities[weapon.Rarity];
+            SKImage rarity = rarities[weapon.Rarity + "-card"];
+
+            canvas.DrawImage(rarity_bg, new SKPoint(0, 0));
+
+            canvas.DrawImage(weapon.Icon, new SKRectI(0, 0, 1024, 1024));
+
+            if (!string.IsNullOrEmpty(weapon.Name) && !string.IsNullOrEmpty(weapon.Description))
+            {
+                canvas.DrawImage(rarity, new SKPoint(0, 0));
+
+                SKPaint NamePaint = new SKPaint
+                {
+                    Color = SKColors.White,
+                    IsAntialias = true,
+                    Style = SKPaintStyle.Fill,
+                    TextAlign = SKTextAlign.Center,
+                    TextSize = 80,
+                    Typeface = burbanktf
+                };
+                canvas.DrawText(weapon.Name, new SKPoint(info.Width / 2, 880), NamePaint);
+
+                SKPaint DescPaint = new SKPaint
+                {
+                    Color = SKColors.White,
+                    IsAntialias = true,
+                    Style = SKPaintStyle.Fill,
+                    TextAlign = SKTextAlign.Center,
+                    TextSize = 50,
+                    Typeface = burbanktf
+                };
+                int textsize = (int)DescPaint.MeasureText(weapon.Description);
+                if (textsize >= 991)
+                {
+                    int size = 50;
+                    bool FitIn = false;
+                    while (!FitIn)
+                    {
+                        DescPaint = new SKPaint
+                        {
+                            Color = SKColors.White,
+                            IsAntialias = true,
+                            Style = SKPaintStyle.Fill,
+                            TextAlign = SKTextAlign.Center,
+                            TextSize = size,
+                            Typeface = burbanktf
+                        };
+                        textsize = (int)DescPaint.MeasureText(weapon.Description);
+                        if (textsize <= 990) FitIn = true;
+                        else size--;
+                    }
+                }
+                canvas.DrawText(weapon.Description, new SKPoint(info.Width / 2, 940), DescPaint);
+            }
+            
+            var image = surface.Snapshot();
+            weapon.Canvas = image;
+            var data = image.Encode(SKEncodedImageFormat.Png, 100);
+            var stream = File.OpenWrite(Path.Combine(Global.OutPath, "weapons", weapon.Id + ".png"));
+            data.SaveTo(stream);
+            stream.Close();
+            Global.Print(ConsoleColor.Green, "Weapon Manager", $"Saved image of {weapon.Id}");
+        }
 
         public static void Map(SKImage map, List<POI> pois)
         {

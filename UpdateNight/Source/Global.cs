@@ -71,6 +71,7 @@ public class Global
         Directory.CreateDirectory(Path.Combine(OutPath, "icons"));
         Directory.CreateDirectory(Path.Combine(OutPath, "collages"));
         Directory.CreateDirectory(Path.Combine(OutPath, "ui"));
+        Directory.CreateDirectory(Path.Combine(OutPath, "weapons"));
     }
 
     public static void Exit(int code) => Exit(code, null, false);

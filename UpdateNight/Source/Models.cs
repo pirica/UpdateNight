@@ -176,6 +176,97 @@ namespace UpdateNight.Source.Models
         }
     }
 
+    class Weapon
+    {
+        public string Id { get; set; }
+        public string Path { get; set; }
+        public string Name { get; set; }
+        public string Description { get; set; }
+        public string Type { get; set; }
+        public string Rarity { get; set; }
+        public string ImagePath { get; set; }
+        public SKImage Icon { get; set; }
+        public SKImage Canvas { get; set; }
+        private bool ForceQuestionMark { get; set; }
+
+        public Weapon(IoPackage data, string path)
+        {
+            Id = path.Split("/").Last();
+            Path = path;
+
+            IUExport export = data.Exports[0];
+            
+            if (export.GetExport<TextProperty>("DisplayName") is { } n && n.Value is { } nt && nt.Text is FTextHistory.Base nb)
+                Name = nb.SourceString.Replace("<Emphasized>", "").Replace("</>", "");
+
+            if (export.GetExport<TextProperty>("Description") is { } d && d.Value is { } dt && dt.Text is FTextHistory.Base db)
+                Description = db.SourceString.Replace("<Emphasized>", "").Replace("</>", "");
+
+            if (export.GetExport<TextProperty>("ShortDescription") is { } t && t.Value is { } tt && tt.Text is FTextHistory.Base tb)
+                Type = tb.SourceString.Replace("<Emphasized>", "").Replace("</>", "");
+            
+            if (export.GetExport<ObjectProperty>("Series") is { } series)
+                Rarity = series.Value.Resource.ObjectName.String;
+            else if (export.GetExport<EnumProperty>("Rarity") is { } rarity)
+                Rarity = rarity.Value.String.Replace("EFortRarity::", "");
+            else
+                Rarity = "Uncommon";
+            
+            if (export.GetExport<SoftObjectProperty>("DisplayAssetPath") is { } dpath)
+                ImagePath = dpath.Value.AssetPathName.String;
+            else if (export.GetExport<SoftObjectProperty>("LargePreviewImage") is { } lpath)
+                ImagePath = lpath.Value.AssetPathName.String;
+            else if (export.GetExport<SoftObjectProperty>("SmallPreviewImage") is { } spath)
+                ImagePath = spath.Value.AssetPathName.String;
+
+            if (ImagePath.StartsWith("/"))
+            {
+                IEnumerable<string> enumerable = ImagePath.Split("/");
+                string pain = String.Join("/", enumerable);
+                string tempFix =
+                    $"/FortniteGame/Plugins/GameFeatures/{enumerable.ElementAt(1)}/Content/{pain.Split("/")[2]}/{pain.Split("/")[3]}/{pain.Split("/")[4]}";
+                ImagePath = tempFix.Split(".")[0];
+                
+                // I DON'T ANOTHER WAY TO DO IT BUT IT WORKS.
+
+            }
+            // load image
+            GetImage();
+        }
+
+        private void GetImage()
+        {
+            if (string.IsNullOrEmpty(ImagePath) || ForceQuestionMark) // looks dumb but i have no best way
+            {
+                Stream fileStream = File.OpenRead(System.IO.Path.Combine(Global.AssetsPath, "images", "QuestionMark.png"));
+                SKBitmap bitmap = SKBitmap.Decode(fileStream);
+                SKImage image = SKImage.FromBitmap(bitmap);
+                Icon = image;
+            }
+            else
+            {
+                IoPackage asset = Toc.GetAsset(ImagePath);
+                if (asset == null)
+                {
+                    Global.Print(ConsoleColor.Red, "Error", $"Could not get asset for {ImagePath}", true);
+                    ForceQuestionMark = true;
+                    GetImage();
+                    return;
+                }
+                if (asset.ExportTypes.Any(e => e.String != "Texture2D"))
+                {
+                    Global.Print(ConsoleColor.Red, "Error", $"The Image Path Detected for {Id} ({ImagePath}) is not a Texture", true);
+                    ForceQuestionMark = true;
+                    GetImage();
+                    return;
+                }
+                UTexture2D texture = asset.GetExport<UTexture2D>();
+                SKImage image = texture.Image;
+                Icon = image;
+            }
+        }
+    }
+
     class POI
     {
         public string Name { get; set; }
