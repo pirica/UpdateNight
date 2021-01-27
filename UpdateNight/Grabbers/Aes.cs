@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using UpdateNight.Exceptions;
 
 namespace UpdateNight.Grabbers
 {
@@ -58,7 +59,7 @@ namespace UpdateNight.Grabbers
             using HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, "https://fortnite-api.com/v2/aes");
             var response = await Client.SendAsync(request).ConfigureAwait(false);
             if (response.StatusCode != HttpStatusCode.OK)
-                throw new Exception($"Request failed with {(int) response.StatusCode} status code");
+                throw new UpdateNightException($"Request failed with {(int) response.StatusCode} status code");
             
             string data = await response.Content.ReadAsStringAsync();
             Response res = JsonConvert.DeserializeObject<Response>(data);

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Net.Http;
 using System.Collections.Generic;
 using System.Net;
+using UpdateNight.Exceptions;
 
 namespace UpdateNight.Grabbers
 {
@@ -23,7 +24,7 @@ namespace UpdateNight.Grabbers
             request.Headers.Add("Authorization", $"bearer {_token.AccessToken}");
             var response = await Client.SendAsync(request).ConfigureAwait(false);
             if (response.StatusCode != HttpStatusCode.OK)
-                throw new Exception($"Request Failed with {(int) response.StatusCode}");
+                throw new UpdateNightException($"Request Failed with {(int) response.StatusCode}");
             Stream data = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
             
             var manifestInfo = new ManifestInfo(data);

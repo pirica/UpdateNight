@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using UpdateNight.Exceptions;
 using UsmapNET.Classes;
 
 namespace UpdateNight.Grabbers
@@ -21,7 +22,7 @@ namespace UpdateNight.Grabbers
             using HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, "https://benbotfn.tk/api/v1/mappings");
             HttpResponseMessage response = await Client.SendAsync(request).ConfigureAwait(false);
             if (response.StatusCode != HttpStatusCode.OK)
-                throw new Exception($"Request Failed With {(int) response.StatusCode}, benbot seems to be down");
+                throw new UpdateNightException($"Request Failed With {(int) response.StatusCode}, benbot seems to be down");
 
             string data = await response.Content.ReadAsStringAsync();
             Mapping[] res = JsonConvert.DeserializeObject<Mapping[]>(data);
