@@ -2,7 +2,7 @@
   <PropertyGroup>
     <!-- default info and thigies  /shrug -->
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
     <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
     <AssemblyVersion>1.1.0.4</AssemblyVersion>
 
