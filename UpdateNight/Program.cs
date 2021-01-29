@@ -115,9 +115,10 @@ namespace UpdateNight
 
             // Functions
             await GetCosmetics();
+            await GetChallenges();
+            await GetWeapons();
             await GetMap();
             await ExtractUi();
-            await GetWeapons();
 
             // End program
             End = DateTime.UtcNow;
@@ -182,6 +183,57 @@ namespace UpdateNight
 
                 Console.WriteLine();
             }
+
+            return Task.CompletedTask;
+        }
+
+        static Task GetChallenges()
+        {
+            List<string> Files = NewFiles.Where(f =>
+                f.StartsWith("/FortniteGame/Content/Athena/Items/ChallengeBundles/")
+                || (f.StartsWith("/FortniteGame/Plugins/GameFeatures/BattlepassS") && f.Contains("/Content/Items/QuestBundles/"))).ToList();
+
+            Global.Print(ConsoleColor.Green, "Challenge Manager", $"{(Files.Count < 1 ? "No" : Files.Count.ToString())} new challenges");
+            Console.WriteLine();
+
+            foreach (string path in Files)
+            {
+                IoPackage asset = Toc.GetAsset(path);
+                if (asset == null)
+                {
+                    Global.Print(ConsoleColor.Red, "Error", $"Could not get the asset for {path.Split("/").Last()}");
+                    continue;
+                }
+
+                Challenge challenge = new Challenge(asset, path);
+                Image.Challenge(challenge); // not implemented yet
+            }
+
+            return Task.CompletedTask;
+        }
+
+        static Task GetWeapons()
+        {
+            List<string> Files = NewFiles.Where(f =>
+                f.StartsWith("/FortniteGame/Plugins/GameFeatures/NightmareGameplay/Content/Items/") && f.Contains("WID")).ToList();
+
+            Global.Print(ConsoleColor.Green, "Weapon Manager", $"{(Files.Count < 1 ? "No" : Files.Count.ToString())} new weapons");
+            Console.WriteLine();
+
+            foreach (string path in Files)
+            {
+                IoPackage asset = Toc.GetAsset(path);
+                if (asset == null)
+                {
+                    Global.Print(ConsoleColor.Red, "Error", $"Could not get the asset for {path.Split("/").Last()}");
+                    continue;
+                }
+
+                Weapon weapon = new Weapon(asset, path);
+                Image.Weapon(weapon);
+            }
+
+            Console.WriteLine();
 
             return Task.CompletedTask;
         }
@@ -268,30 +320,6 @@ namespace UpdateNight
             }
 
 
-            return Task.CompletedTask;
-        }
-
-        static Task GetWeapons()
-        {
-            List<string> Files = NewFiles.Where(f =>
-                f.StartsWith("/FortniteGame/Plugins/GameFeatures/NightmareGameplay/Content/Items/") && f.Contains("WID")).ToList();
-
-            Global.Print(ConsoleColor.Green, "Cosmetic Manager", $"{(Files.Count < 1 ? "No" : Files.Count.ToString())} new weapons");
-            Console.WriteLine();
-
-            foreach (string path in Files)
-            {
-                IoPackage asset = Toc.GetAsset(path);
-                if (asset == null)
-                {
-                    Global.Print(ConsoleColor.Red, "Error", $"Could not get the asset for {path.Split("/").Last()}");
-                    continue;
-                }
-
-                Weapon weapon = new Weapon(asset, path);
-                Image.Weapon(weapon);
-            }
-            
             return Task.CompletedTask;
         }
     }

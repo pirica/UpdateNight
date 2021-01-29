@@ -12,16 +12,27 @@ namespace UpdateNight.Source
         public static SKTypeface burbanktf = SKTypeface.FromFile(Path.Combine(Global.AssetsPath, "fonts", "BurbankBigCondensedBlack.ttf"));
         public static SKTypeface luckiestguytf = SKTypeface.FromFile(Path.Combine(Global.AssetsPath, "fonts", "LuckiestGuy.ttf")); // not use.. yet :eyes:
         public static Dictionary<string, SKImage> rarities = new Dictionary<string, SKImage>();
+        public static Dictionary<string, SKImage> images = new Dictionary<string, SKImage>();
         public static void PreLoad()
         {
-            DirectoryInfo d = new DirectoryInfo(Path.Combine(Global.AssetsPath, "images", "rarities"));
-            FileInfo[] Files = d.GetFiles("*.png");
-            foreach (FileInfo file in Files)
+            DirectoryInfo RD = new DirectoryInfo(Path.Combine(Global.AssetsPath, "images", "rarities"));
+            FileInfo[] RF = RD.GetFiles("*.png");
+            foreach (FileInfo file in RF)
             {
                 Stream fileStream = File.OpenRead(file.FullName);
                 SKBitmap bitmap = SKBitmap.Decode(fileStream);
                 SKImage image = SKImage.FromBitmap(bitmap);
                 rarities.Add(file.Name.Replace(".png", ""), image);
+            }
+
+            DirectoryInfo ID = new DirectoryInfo(Path.Combine(Global.AssetsPath, "images", "challenges"));
+            FileInfo[] IF = ID.GetFiles("*.png");
+            foreach (FileInfo file in IF)
+            {
+                Stream fileStream = File.OpenRead(file.FullName);
+                SKBitmap bitmap = SKBitmap.Decode(fileStream);
+                SKImage image = SKImage.FromBitmap(bitmap);
+                images.Add(file.Name.Replace(".png", ""), image);
             }
         }
 
@@ -59,30 +70,9 @@ namespace UpdateNight.Source
                     IsAntialias = true,
                     Style = SKPaintStyle.Fill,
                     TextAlign = SKTextAlign.Center,
-                    TextSize = 50,
+                    TextSize = GetTextSizeThatFitsIn(cosmetic.Description, 50, 990),
                     Typeface = burbanktf
                 };
-                int textsize = (int)DescPaint.MeasureText(cosmetic.Description);
-                if (textsize >= 991)
-                {
-                    int size = 50;
-                    bool FitIn = false;
-                    while (!FitIn)
-                    {
-                        DescPaint = new SKPaint
-                        {
-                            Color = SKColors.White,
-                            IsAntialias = true,
-                            Style = SKPaintStyle.Fill,
-                            TextAlign = SKTextAlign.Center,
-                            TextSize = size,
-                            Typeface = burbanktf
-                        };
-                        textsize = (int)DescPaint.MeasureText(cosmetic.Description);
-                        if (textsize <= 990) FitIn = true;
-                        else size--;
-                    }
-                }
                 canvas.DrawText(cosmetic.Description, new SKPoint(info.Width / 2, 940), DescPaint);
             }
 
@@ -125,6 +115,76 @@ namespace UpdateNight.Source
             stream.Close();
             Global.Print(ConsoleColor.Green, "Cosmetic Manager", $"Saved image of {cosmetic.Id}");
         }
+
+        public static void Challenge(Challenge challenge)
+        {
+            SKImageInfo info = new SKImageInfo(1024, 133 + (136 * challenge.Quests.Count));
+            SKSurface surface = SKSurface.Create(info);
+            SKCanvas canvas = surface.Canvas;
+
+            SKImage header = images["header"];
+            SKImage background = images["background"];
+            SKImage questi = images["quest"];
+
+            if (info.Height > background.Height)
+                canvas.DrawImage(SKImage.FromBitmap(SKBitmap.Decode(background.Encode())
+                    .Resize(new SKImageInfo(1024, info.Height), SKFilterQuality.High)), new SKPoint(0, 0));
+            else canvas.DrawImage(background, new SKPoint(0, 0));
+            canvas.DrawImage(header, new SKPoint(0, 0));
+
+            SKPaint HeaderPaint = new SKPaint
+            {
+                Color = SKColors.White,
+                Style = SKPaintStyle.Fill,
+                TextAlign = SKTextAlign.Left,
+                TextSize = GetTextSizeThatFitsIn(challenge.Name, 70, 1000),
+                Typeface = burbanktf
+            };
+            canvas.DrawText(challenge.Name, new SKPoint(40, 80), HeaderPaint);
+
+            int y = 133;
+            for (int i = 0; i < challenge.Quests.Count; i++)
+            {
+                var quest = challenge.Quests.ElementAt(i);
+
+                canvas.DrawImage(questi, new SKPoint(0, y));
+
+                SKPaint TextPaint = new SKPaint
+                {
+                    Color = SKColors.White,
+                    Style = SKPaintStyle.Fill,
+                    TextAlign = SKTextAlign.Left,
+                    TextSize = GetTextSizeThatFitsIn(quest.Text, 35, 990),
+                    Typeface = burbanktf
+                };
+                canvas.DrawText(quest.Text, new SKPoint(40, y + 58), TextPaint);
+
+
+                SKPaint RewardTextPaint = new SKPaint
+                {
+                    Color = SKColors.White,
+                    Style = SKPaintStyle.Fill,
+                    TextAlign = SKTextAlign.Left,
+                    TextSize = 25,
+                    Typeface = burbanktf
+                };
+                canvas.DrawText(quest.Reward.Text, new SKPoint(140, y + 110), RewardTextPaint);
+
+                canvas.DrawImage(SKImage.FromBitmap(SKBitmap.Decode(quest.Reward.Icon.Encode()) // to resize the image /shrug
+                    .Resize(new SKImageInfo(92, 92), SKFilterQuality.High)),
+                    new SKPoint(915, y + 25));
+
+                y += 136;
+            }
+
+            var image = surface.Snapshot();
+            var data = image.Encode(SKEncodedImageFormat.Png, 100);
+            var stream = File.OpenWrite(Path.Combine(Global.OutPath, "challenges", challenge.Id + ".png"));
+            data.SaveTo(stream);
+            stream.Close();
+            Global.Print(ConsoleColor.Green, "Challenges Manager", $"Saved image of {challenge.Id}");
+        }
+
         public static void Weapon(Weapon weapon)
         {
             SKImageInfo info = new SKImageInfo(1024, 1024);
@@ -271,6 +331,33 @@ namespace UpdateNight.Source
                     }
                 }
             }
+        }
+
+        public static int GetTextSizeThatFitsIn(string text, int initialsize, int maximumsize) // TODO: better name
+        {
+            SKPaint Paint = new SKPaint
+            {
+                TextSize = initialsize
+            };
+            int textsize = (int)Paint.MeasureText(text);
+            if (textsize >= maximumsize)
+            {
+                int size = initialsize;
+                bool FitIn = false;
+                while (!FitIn)
+                {
+                    Paint = new SKPaint
+                    {
+                        TextSize = size
+                    };
+                    textsize = (int)Paint.MeasureText(text);
+                    if (textsize <= 990) FitIn = true;
+                    else size--;
+                }
+                return size;
+            }
+            
+            return initialsize;
         }
     }
 }

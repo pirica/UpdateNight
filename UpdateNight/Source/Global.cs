@@ -22,8 +22,6 @@ public class Global
     public static readonly Dictionary<string, FFileIoStoreReader> IoFiles = new Dictionary<string, FFileIoStoreReader>();
     public static readonly Dictionary<string, FUnversionedType> CachedSchemas = new Dictionary<string, FUnversionedType>();
 
-    // utoc file -> asset path
-    public static Dictionary<string, string> filemapping = new Dictionary<string, string>();
     // asset path -> entry
     public static Dictionary<string, FIoStoreEntry> assetmapping = new Dictionary<string, FIoStoreEntry>();
 
@@ -69,9 +67,10 @@ public class Global
         OutPath = Path.Combine(CurrentPath, "out", (Version.Length == 5 ? Version : Version.Substring(19, 5)).Replace(".", "_"));
         Directory.CreateDirectory(OutPath);
         Directory.CreateDirectory(Path.Combine(OutPath, "icons"));
+        Directory.CreateDirectory(Path.Combine(OutPath, "challenges"));
+        Directory.CreateDirectory(Path.Combine(OutPath, "weapons"));
         Directory.CreateDirectory(Path.Combine(OutPath, "collages"));
         Directory.CreateDirectory(Path.Combine(OutPath, "ui"));
-        Directory.CreateDirectory(Path.Combine(OutPath, "weapons"));
     }
 
     public static void Exit(int code) => Exit(code, null, false);
