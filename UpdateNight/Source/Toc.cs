@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using UpdateNight.TocReader.IO;
+﻿using UpdateNight.TocReader.IO;
 using System.Linq;
 
 namespace UpdateNight.Source
@@ -27,7 +24,7 @@ namespace UpdateNight.Source
                 return null;
 
             FIoStoreEntry entry = Global.assetmapping.First(p => p.Key == path).Value;
-            
+
             return GetAsset(entry);
         }
 

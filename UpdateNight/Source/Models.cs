@@ -154,13 +154,17 @@ namespace UpdateNight.Source.Models
             }
             else
             {
-                IoPackage asset = Toc.GetAsset(ImagePath.Replace("Loadingscreens", "LoadingScreens"));
+                IoPackage asset = Toc.GetAsset(ImagePath);
                 if (asset == null)
                 {
-                    Global.Print(ConsoleColor.Red, "Error", $"Could not get asset for {ImagePath}", true);
-                    ForceQuestionMark = true;
-                    GetImage();
-                    return;
+                    asset = Toc.GetAsset(ImagePath.Replace("Loadingscreens", "LoadingScreens"));
+                    if (asset == null) // try again but with the path changes bc fn sucks
+                    {
+                        Global.Print(ConsoleColor.Red, "Error", $"Could not get asset for {ImagePath}", true);
+                        ForceQuestionMark = true;
+                        GetImage();
+                        return;
+                    }
                 }
                 if (asset.ExportTypes.Any(e => e.String != "Texture2D"))
                 {

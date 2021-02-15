@@ -1,6 +1,4 @@
-﻿using System;
-using System.IO;
-using System.Linq;
+﻿using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -18,7 +16,6 @@ namespace UpdateNight.Grabbers
 
         public static async Task<Mapping[]> GrabInfo()
         {
-         //   var request = new RestClient("https://benbotfn.tk/api/v1/mappings");
             using HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, "https://benbotfn.tk/api/v1/mappings");
             HttpResponseMessage response = await Client.SendAsync(request).ConfigureAwait(false);
             if (response.StatusCode != HttpStatusCode.OK)

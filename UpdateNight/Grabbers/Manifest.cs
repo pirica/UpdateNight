@@ -1,12 +1,11 @@
 ﻿using System;
 using EpicManifestParser.Objects;
-using Newtonsoft.Json;
 using System.IO;
 using System.Threading.Tasks;
 using System.Net.Http;
-using System.Collections.Generic;
 using System.Net;
 using UpdateNight.Exceptions;
+using UpdateNight.Helpers;
 
 namespace UpdateNight.Grabbers
 {
@@ -18,9 +17,9 @@ namespace UpdateNight.Grabbers
 
         public static async Task<ManifestInfo> GrabInfo()
         {
-            if (_token == null) await GetOauthTokenAsync();
+            if (_token == null) _token = await Auth.GetManifestToken();
 
-            using HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, " https://launcher-public-service-prod06.ol.epicgames.com/launcher/api/public/assets/v2/platform/Windows/namespace/fn/catalogItem/4fe75bbc5a674f4f9b356b5c90567da5/app/Fortnite/label/Live");
+            using HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, "https://launcher-public-service-prod06.ol.epicgames.com/launcher/api/public/assets/v2/platform/Windows/namespace/fn/catalogItem/4fe75bbc5a674f4f9b356b5c90567da5/app/Fortnite/label/Live");
             request.Headers.Add("Authorization", $"bearer {_token.AccessToken}");
             var response = await Client.SendAsync(request).ConfigureAwait(false);
             if (response.StatusCode != HttpStatusCode.OK)
@@ -61,33 +60,5 @@ namespace UpdateNight.Grabbers
 
             return manfiest;
         }
-        
-        public static async Task GetOauthTokenAsync()
-        {
-            using HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "https://account-public-service-prod03.ol.epicgames.com/account/api/oauth/token")
-            {
-                Content = new FormUrlEncodedContent(new Dictionary<string, string>
-                {
-                    {"grant_type", "client_credentials"}, {"token_type", "eg1"}
-                })
-            };
-            request.Headers.Add("Authorization", "basic MzQ0NmNkNzI2OTRjNGE0NDg1ZDgxYjc3YWRiYjIxNDE6OTIwOWQ0YTVlMjVhNDU3ZmI5YjA3NDg5ZDMxM2I0MWE=");
-            using var response = await Client.SendAsync(request).ConfigureAwait(false);
-
-            string data = await response.Content.ReadAsStringAsync();
-            var res = JsonConvert.DeserializeObject<Oauth>(data);
-            _token = res;
-        }
-    }
-
-    public class Oauth
-    {
-        [JsonProperty("access_token")] public string AccessToken { get; set; }
-        [JsonProperty("expires_in")] public int ExpiresIn { get; set; }
-        [JsonProperty("expires_at")] public DateTime ExpiresAt { get; set; }
-        [JsonProperty("token_type")] public string TokenType { get; set; }
-        [JsonProperty("client_id")] public string ClientId { get; set; }
-        [JsonProperty("internal_client")] public bool InternalClient { get; set; }
-        [JsonProperty("client_service")] public string ClientService { get; set; }
     }
 }

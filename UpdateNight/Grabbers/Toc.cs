@@ -18,7 +18,7 @@ namespace UpdateNight.Grabbers
 
             // useless files (used for some translations)
             string[] unused_files = { "pakchunk2-WindowsClient", "pakchunk5-WindowsClient", "pakchunk7-WindowsClient", "pakchunk8-WindowsClient", "pakchunk9-WindowsClient" };
-            
+
             foreach (FileManifest file in manifest.FileManifests)
             {
                 if (!file.Name.StartsWith("FortniteGame/Content/Paks/") || file.Name.Contains("global") || file.Name.Contains("optional")) continue;
@@ -31,7 +31,7 @@ namespace UpdateNight.Grabbers
             await Aes.WaitUntilNewKey();
 
             DateTime astart = DateTime.UtcNow;
-            
+
             foreach (string file in filenames)
             {
                 DateTime start = DateTime.UtcNow;
@@ -40,7 +40,7 @@ namespace UpdateNight.Grabbers
 
                 FFileIoStoreReader ioStore = new FFileIoStoreReader(utoc.Name.SubstringAfterLast('\\'), utoc.Name.SubstringBeforeLast('\\'), utoc.GetStream(), ucas.GetStream());
 
-                if (ioStore.IsEncrypted && Aes.Keys.TryGetValue(file, out string key)) ioStore.AesKey = key.ToUpperInvariant().Trim().ToBytesKey();
+                if (ioStore.IsEncrypted && Aes.Keys.TryGetValue(ioStore.TocResource.Header.EncryptionKeyGuid.Hex, out string key)) ioStore.AesKey = key.ToUpperInvariant().Trim().ToBytesKey();
 
                 if (!ioStore.IsEncrypted || (ioStore.IsEncrypted && ioStore.AesKey != null))
                 {
@@ -50,7 +50,7 @@ namespace UpdateNight.Grabbers
 
                 DateTime end = DateTime.UtcNow;
                 TimeSpan dur = end.Subtract(start);
-                
+
                 Console.Write($"[{Global.BuildTime()}] ");
                 Console.ForegroundColor = ConsoleColor.Green;
                 Console.Write("[Toc Grabber] ");
@@ -74,7 +74,7 @@ namespace UpdateNight.Grabbers
                     Console.Write(Strings.GetReadableSize((double)ioStore.ContainerFile.FileSize));
                     Console.ForegroundColor = ConsoleColor.White;
                     Console.Write("]");
-                    
+
                     Console.WriteLine();
                 }
 

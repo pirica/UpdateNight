@@ -63,7 +63,7 @@ namespace UpdateNight.Source
             public static Dictionary<string, string> SourceNames = new Dictionary<string, string>();
             public static Dictionary<string, string> SetsName = new Dictionary<string, string>();
 
-            public static void PreLoad()
+            public static async Task PreLoadAsync()
             {
                 // Cosmetics sets
                 IoPackage asset = Toc.GetAsset("/FortniteGame/Content/Athena/Items/Cosmetics/Metadata/CosmeticSets");
@@ -71,9 +71,13 @@ namespace UpdateNight.Source
                 {
                     Global.Print(ConsoleColor.Magenta, "Update Night", "Pre loading Cometic Sets", false, true);
 
+                    var hotfixes = await Helpers.Hotfixes.Grab();
+                    foreach (var key in hotfixes.Keys)
+                        SetsName.Add(key.Replace("_DisplayName", ""), hotfixes[key]);
+
                     var data = asset.GetExport<UDataTable>();
                     foreach (var tag in data.Keys)
-                     if (data.TryGetValue(tag, out var seta) && seta is UObject set
+                    if (!SetsName.ContainsKey(tag) && data.TryGetValue(tag, out var seta) && seta is UObject set
                             && set.GetExport<TextProperty>("DisplayName") is { } name
                             && name.Value.Text is FTextHistory.Base text)
                         SetsName.Add(tag, text.SourceString);

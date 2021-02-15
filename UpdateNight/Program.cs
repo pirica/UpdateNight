@@ -105,7 +105,7 @@ namespace UpdateNight
 
             // Pre loads
             Image.PreLoad();
-            Utils.Localization.PreLoad();
+            Utils.Localization.PreLoadAsync();
 
             Console.WriteLine();
 
@@ -134,12 +134,14 @@ namespace UpdateNight
                 f.StartsWith("/FortniteGame/Content/Athena/Items/Cosmetics/")
                 || f.StartsWith("/FortniteGame/Content/Athena/Items/CosmeticVariantTokens/")).ToList();
 
-            Global.Print(ConsoleColor.Green, "Cosmetic Manager", $"{(Files.Count < 1 ? "No" : Files.Count.ToString())} new cosmetics");
+            Global.Print(ConsoleColor.Green, "Cosmetic Manager", $"{(Files.Count < 1 ? "No" : Files.Count.ToString())} new cosmetics{(Files.Count < 1 ? "\n" : "")}");
+            if (Files.Count < 1) return Task.CompletedTask;
+
             Console.WriteLine();
 
             foreach (string path in Files)
             {
-                if (path.Contains("Series")) continue;
+                if (path.Contains("/Series/")) continue;
 
                 IoPackage asset = Toc.GetAsset(path);
                 if (asset == null)
@@ -153,36 +155,33 @@ namespace UpdateNight
                 CosmeticsData.Add(cosmetic);
             }
 
-            if (CosmeticsData.Count > 0)
+            Console.WriteLine();
+
+            // TODO: Sort this property
+            /* List<string> types = CosmeticsData.Select(c => c.Type).ToList();
+            types = types.Distinct().ToList();
+            foreach (string type in types)
             {
-                Console.WriteLine();
-
-                // TODO: Sort this property
-                /* List<string> types = CosmeticsData.Select(c => c.Type).ToList();
-                types = types.Distinct().ToList();
-                foreach (string type in types)
-                {
-                    List<Cosmetic> data = CosmeticsData.Where(c => c.Type == type).ToList();
-                    data = data.OrderBy(c => c.Name).ThenBy(c => c.Rarity)
-                                .ThenBy(c => Source.Utils.BuildRarity(c.Rarity)).ThenBy(c => c.Type).ToList();
-                    Image.Collage(data.Select(c => c.Canvas).ToArray(), type);
-                }
-
-                List<string> sets = CosmeticsData.Where(c => !string.IsNullOrEmpty(c.Set)).Select(c => c.Set).ToList();
-                sets = sets.Distinct().ToList();
-                foreach (string set in sets)
-                {
-                    List<Cosmetic> data = CosmeticsData.Where(c => c.Set == set).ToList();
-                    data = data.OrderBy(c => c.Name).ThenBy(c => c.Rarity)
-                                .ThenBy(c => Source.Utils.BuildRarity(c.Rarity)).ThenBy(c => c.Type).ToList();
-                    Image.Collage(data.Select(c => c.Canvas).ToArray(), set);
-                } */
-
-                Image.Collage(CosmeticsData.OrderBy(c => c.Name).ThenBy(c => Utils.BuildRarity(c.Rarity))
-                    .Select(c => c.Canvas).ToArray(), "All");
-
-                Console.WriteLine();
+                List<Cosmetic> data = CosmeticsData.Where(c => c.Type == type).ToList();
+                data = data.OrderBy(c => c.Name).ThenBy(c => c.Rarity)
+                            .ThenBy(c => Source.Utils.BuildRarity(c.Rarity)).ThenBy(c => c.Type).ToList();
+                Image.Collage(data.Select(c => c.Canvas).ToArray(), type);
             }
+
+            List<string> sets = CosmeticsData.Where(c => !string.IsNullOrEmpty(c.Set)).Select(c => c.Set).ToList();
+            sets = sets.Distinct().ToList();
+            foreach (string set in sets)
+            {
+                List<Cosmetic> data = CosmeticsData.Where(c => c.Set == set).ToList();
+                data = data.OrderBy(c => c.Name).ThenBy(c => c.Rarity)
+                            .ThenBy(c => Source.Utils.BuildRarity(c.Rarity)).ThenBy(c => c.Type).ToList();
+                Image.Collage(data.Select(c => c.Canvas).ToArray(), set);
+            } */
+
+            Image.Collage(CosmeticsData.OrderBy(c => c.Name).ThenBy(c => Utils.BuildRarity(c.Rarity))
+                .Select(c => c.Canvas).ToArray(), "All");
+
+            Console.WriteLine();
 
             return Task.CompletedTask;
         }
@@ -193,7 +192,8 @@ namespace UpdateNight
                 f.StartsWith("/FortniteGame/Content/Athena/Items/ChallengeBundles/")
                 || (f.StartsWith("/FortniteGame/Plugins/GameFeatures/BattlepassS") && f.Contains("/Content/Items/QuestBundles/"))).ToList();
 
-            Global.Print(ConsoleColor.Green, "Challenge Manager", $"{(Files.Count < 1 ? "No" : Files.Count.ToString())} new challenges");
+            Global.Print(ConsoleColor.Green, "Challenge Manager", $"{(Files.Count < 1 ? "No" : Files.Count.ToString())} new challenges{(Files.Count < 1 ? "\n" : "")}");
+            if (Files.Count < 1) return Task.CompletedTask;
             Console.WriteLine();
 
             foreach (string path in Files)
@@ -217,7 +217,8 @@ namespace UpdateNight
             List<string> Files = NewFiles.Where(f =>
                 f.StartsWith("/FortniteGame/Plugins/GameFeatures/NightmareGameplay/Content/Items/") && f.Contains("WID")).ToList();
 
-            Global.Print(ConsoleColor.Green, "Weapon Manager", $"{(Files.Count < 1 ? "No" : Files.Count.ToString())} new weapons");
+            Global.Print(ConsoleColor.Green, "Weapon Manager", $"{(Files.Count < 1 ? "No" : Files.Count.ToString())} new weapons{(Files.Count < 1 ? "\n" : "")}");
+            if (Files.Count < 1) return Task.CompletedTask;
             Console.WriteLine();
 
             foreach (string path in Files)
@@ -291,7 +292,14 @@ namespace UpdateNight
 
         static Task ExtractUi()
         {
-            foreach (string path in NewFiles)
+            List<string> Files = NewFiles.Where(f =>
+                f.StartsWith("/FortniteGame/Content/UI/Foundation/")
+                || f.StartsWith("/FortniteGame/Content/2dAssets/")).ToList();
+
+            Global.Print(ConsoleColor.Green, "UI Manager", $"{(Files.Count < 1 ? "No" : Files.Count.ToString())} new textures{(Files.Count < 1 ? "\n" : "")}");
+            if (Files.Count < 1) return Task.CompletedTask;
+
+            foreach (string path in Files)
             {
                 if (!(path.StartsWith("/FortniteGame/Content/UI/Foundation/") ||
                       path.StartsWith("/FortniteGame/Content/2dAssets/"))) continue;
@@ -318,7 +326,6 @@ namespace UpdateNight
 
                 Global.Print(ConsoleColor.Green, "UI Manager", $"Saved image of {path.Split("/").Last()}");
             }
-
 
             return Task.CompletedTask;
         }

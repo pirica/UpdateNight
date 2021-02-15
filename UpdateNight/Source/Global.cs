@@ -6,6 +6,8 @@ using System.Linq;
 using System.Threading;
 using UsmapNET.Classes;
 using System.Diagnostics;
+using UpdateNight.Helpers;
+using Newtonsoft.Json;
 
 public class Global
 {
@@ -21,6 +23,10 @@ public class Global
     public static string AssetsPath = Path.Combine(CurrentPath, "assets");
     public static readonly Dictionary<string, FFileIoStoreReader> IoFiles = new Dictionary<string, FFileIoStoreReader>();
     public static readonly Dictionary<string, FUnversionedType> CachedSchemas = new Dictionary<string, FUnversionedType>();
+
+    public static DeviceAuth DeviceAuth = File.Exists(Path.Combine(CurrentPath, "deviceauth.json"))
+        ? JsonConvert.DeserializeObject<DeviceAuth>(File.ReadAllText(Path.Combine(CurrentPath, "deviceauth.json")))
+        : null;
 
     // asset path -> entry
     public static Dictionary<string, FIoStoreEntry> assetmapping = new Dictionary<string, FIoStoreEntry>();
