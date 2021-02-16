@@ -301,19 +301,17 @@ namespace UpdateNight
 
             foreach (string path in Files)
             {
-                if (!(path.StartsWith("/FortniteGame/Content/UI/Foundation/") ||
-                      path.StartsWith("/FortniteGame/Content/2dAssets/"))) continue;
                 IoPackage asset = Toc.GetAsset(path);
                 if (asset == null)
                 {
                     Global.Print(ConsoleColor.Red, "Error", $"Could not get the asset for {path.Split("/").Last()}");
-                    return Task.CompletedTask;
+                    continue;
                 }
 
-                if (asset.ExportTypes.All(e => e.String != "Texture2D"))
+                if (!asset.ExportTypes.Any(e => e.String == "Texture2D"))
                 {
                     Global.Print(ConsoleColor.Red, "Error", $"{path.Split("/").Last()} asset does not have a Texture2D");
-                    return Task.CompletedTask;
+                    continue;
                 }
 
                 UTexture2D texture = asset.GetExport<UTexture2D>();
