@@ -19,7 +19,7 @@ namespace UpdateNight.Grabbers
         {
             if (Global.DeviceAuth == null)
             {
-                Global.Print(ConsoleColor.Yellow, "AES Grabber", "\"deviceauth.json\" could not be found, therefor we cannot auth to get dynamic keys");
+                Global.Print(ConsoleColor.Yellow, "AES Grabber", "\"deviceauth.json\" could not be found, therefor we cannot auth to get dynamic keys\n");
                 return;
             }
 

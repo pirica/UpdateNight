@@ -47,7 +47,7 @@ namespace UpdateNight.Source
 
             canvas.DrawImage(rarity_bg, new SKPoint(0, 0));
 
-            canvas.DrawImage(cosmetic.Icon, new SKRectI(0, 0, 1024, 1024));
+            canvas.DrawImage(Resize(cosmetic.Icon, 1024, 1024), new SKPoint(0, 0));
 
             if (!string.IsNullOrEmpty(cosmetic.Name) && !string.IsNullOrEmpty(cosmetic.Description))
             {
@@ -196,7 +196,7 @@ namespace UpdateNight.Source
 
             canvas.DrawImage(rarity_bg, new SKPoint(0, 0));
 
-            canvas.DrawImage(weapon.Icon, new SKRectI(0, 0, 1024, 1024));
+            canvas.DrawImage(Resize(weapon.Icon, 1024, 1024), new SKPoint(0, 0));
 
             if (!string.IsNullOrEmpty(weapon.Name) && !string.IsNullOrEmpty(weapon.Description))
             {
@@ -219,30 +219,9 @@ namespace UpdateNight.Source
                     IsAntialias = true,
                     Style = SKPaintStyle.Fill,
                     TextAlign = SKTextAlign.Center,
-                    TextSize = 50,
+                    TextSize = GetTextSizeThatFitsIn(weapon.Description, 50, 990),
                     Typeface = burbanktf
                 };
-                int textsize = (int)DescPaint.MeasureText(weapon.Description);
-                if (textsize >= 991)
-                {
-                    int size = 50;
-                    bool FitIn = false;
-                    while (!FitIn)
-                    {
-                        DescPaint = new SKPaint
-                        {
-                            Color = SKColors.White,
-                            IsAntialias = true,
-                            Style = SKPaintStyle.Fill,
-                            TextAlign = SKTextAlign.Center,
-                            TextSize = size,
-                            Typeface = burbanktf
-                        };
-                        textsize = (int)DescPaint.MeasureText(weapon.Description);
-                        if (textsize <= 990) FitIn = true;
-                        else size--;
-                    }
-                }
                 canvas.DrawText(weapon.Description, new SKPoint(info.Width / 2, 940), DescPaint);
             }
             
@@ -261,7 +240,7 @@ namespace UpdateNight.Source
             SKSurface surface = SKSurface.Create(info);
             SKCanvas canvas = surface.Canvas;
 
-            canvas.DrawImage(map, new SKRectI(0, 0, 2048, 2048));
+            canvas.DrawImage(Resize(map, 2048, 2048), new SKPoint(0, 0));
 
             int count = 0;
             pois = pois.OrderBy(p => p.IsBigPoi).ToList();
@@ -297,26 +276,30 @@ namespace UpdateNight.Source
         {
             if (images != null && images.Length >= 1)
             {
-                double width = Math.Ceiling(Math.Sqrt(images.Length));
-                double height = Math.Ceiling(images.Length / width);
+                var width = Math.Ceiling(Math.Sqrt(images.Length));
+                var height = Math.Ceiling(images.Length / width);
+                width = (int)width; height = (int)height;
 
-                SKImageInfo info = new SKImageInfo((int)width * 1024, (int)height * 1024);
+                int size = width > 4 ? 512 : 1024;
+                int spacing = width > 4 ? 45 : 90;
+
+                SKImageInfo info = new SKImageInfo((int)((width * size) + ((width + 1) * spacing)), (int)((height * size) + ((height + 1) * spacing)));
                 SKSurface surface = SKSurface.Create(info);
                 SKCanvas canvas = surface.Canvas;
                 canvas.Clear(SKColor.Parse("#292a29"));
                 
-                int x = 0;
-                int y = 0;
+                int x = spacing;
+                int y = spacing;
                 int count = 0;
                 foreach (SKImage image in images)
                 {
-                    canvas.DrawImage(image, new SKPoint(x, y));
+                    canvas.DrawImage(Resize(image, size, size), new SKPoint(x, y));
 
-                    x += 1024;
+                    x += size + spacing;
                     if (info.Width <= x) // check if `x` is out of the image
                     {
-                        x = 0;
-                        y += 1024;
+                        x = spacing;
+                        y += size + spacing;
                     }
 
                     count++;
@@ -331,6 +314,13 @@ namespace UpdateNight.Source
                     }
                 }
             }
+        }
+
+        public static SKImage Resize(SKImage image, int width, int height)
+        {
+            SKBitmap bitmap = SKBitmap.FromImage(image);
+            bitmap = bitmap.Resize(new SKImageInfo(width, height), SKFilterQuality.High);
+            return SKImage.FromBitmap(bitmap);
         }
 
         public static int GetTextSizeThatFitsIn(string text, int initialsize, int maximumsize) // TODO: better name

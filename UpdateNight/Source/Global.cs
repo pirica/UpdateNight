@@ -49,7 +49,7 @@ public class Global
     public static string BuildTime() => BuildTime(DateTime.UtcNow);
     public static string BuildTime(DateTime time) => time.ToString("T") + "." + time.ToString("fff");
 
-    public static void Check(string OldVersion)
+    public static void Check()
     {
         bool oodleExists = File.Exists(Path.Combine(CurrentPath, "oo2core_8_win64.dll"));
         if (!oodleExists) Exit(0, "Could not locate oodle dll (oo2core_8_win64.dll) in the working directory", true);
@@ -57,21 +57,13 @@ public class Global
         bool assetsExists = Directory.Exists(AssetsPath);
         if (!assetsExists) Exit(0, "Assets folder does not exists", true);
 
-        bool outExists = Directory.Exists(Path.Combine(CurrentPath, "out"));
-        if (!outExists) Exit(0, "Output folder doesnt exists", true);
-
-        bool outbopExists = Directory.Exists(Path.Combine(CurrentPath, "out", (OldVersion.Length == 5 ? OldVersion : OldVersion.Substring(19, 5)).Replace(".", "_")));
-        if (!outbopExists) Exit(0, "Could not find old folder to compare", true);
-
-        DirectoryInfo directory = new DirectoryInfo(Path.Combine(CurrentPath, "out", (OldVersion.Length == 5 ? OldVersion : OldVersion.Substring(19, 5)).Replace(".", "_")));
-        bool outbopfileExists = directory.GetFiles().Any(f => f.Name.StartsWith("file") && f.Name.EndsWith(".txt"));
-        if (!outbopfileExists) Exit(0, "Could not find old files to compare", true);
+        bool runtimeExists = Directory.Exists(Path.Combine(CurrentPath, "Runtimes"));
+        if (!runtimeExists) Exit(0, "Runtime folder doesnt exists", true);
     }
 
     public static void CreateOut()
     {
         OutPath = Path.Combine(CurrentPath, "out", (Version.Length == 5 ? Version : Version.Substring(19, 5)).Replace(".", "_"));
-        Directory.CreateDirectory(OutPath);
         Directory.CreateDirectory(Path.Combine(OutPath, "icons"));
         Directory.CreateDirectory(Path.Combine(OutPath, "challenges"));
         Directory.CreateDirectory(Path.Combine(OutPath, "weapons"));

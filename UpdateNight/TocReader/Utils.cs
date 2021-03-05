@@ -5,7 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using UpdateNight.TocReader.IO;
-using UpdateNight.Source;
+using UpdateNight.Source.Utils;
 
 namespace UpdateNight.TocReader
 {

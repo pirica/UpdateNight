@@ -12,6 +12,8 @@ using System.Collections.Generic;
 using UpdateNight.Source;
 using UpdateNight.Source.Models;
 using UpdateNight.TocReader.Parsers.PropertyTagData;
+using UpdateNight.Source.Utils;
+using static UpdateNight.Source.Utils.Files;
 
 namespace UpdateNight
 {
@@ -44,7 +46,7 @@ namespace UpdateNight
                 old_version = info.BuildVersion.Substring(19, 5);
             }
 
-            Global.Check(old_version);
+            Global.Check();
 
             // Wait until new update
             bool newVersion = false;
@@ -74,9 +76,8 @@ namespace UpdateNight
             bool newMapping = false;
             while (!newMapping)
             {
-                // TODO: make this better
-                Grabbers.Mapping[] mappings = await Grabbers.MappingsGrabber.GrabInfo();
-                Grabbers.Mapping mapping = mappings.FirstOrDefault(m => m.Meta.CompressionMethod == "Oodle" && m.Meta.Version == Global.Version);
+                var mappings = await Grabbers.MappingsGrabber.GrabInfo();
+                var mapping = mappings.FirstOrDefault(m => m.Meta.CompressionMethod == "Oodle" && m.Meta.Version == Global.Version);
                 if (mapping != null)
                 {
                     newMapping = true;
@@ -105,12 +106,12 @@ namespace UpdateNight
 
             // Pre loads
             Image.PreLoad();
-            Utils.Localization.PreLoadAsync();
+            await Localization.PreLoadAsync();
 
             Console.WriteLine();
 
             // File Comparision
-            NewFiles = await Utils.GetNewFiles(Force, old_version);
+            NewFiles = GetNewFiles(Force, old_version);
             Console.WriteLine();
 
             // Functions
@@ -157,15 +158,12 @@ namespace UpdateNight
 
             Console.WriteLine();
 
-            // TODO: Sort this property
-            /* List<string> types = CosmeticsData.Select(c => c.Type).ToList();
+            List<string> types = CosmeticsData.Where(c => !string.IsNullOrEmpty(c.Type)).Select(c => c.Type).ToList();
             types = types.Distinct().ToList();
             foreach (string type in types)
             {
                 List<Cosmetic> data = CosmeticsData.Where(c => c.Type == type).ToList();
-                data = data.OrderBy(c => c.Name).ThenBy(c => c.Rarity)
-                            .ThenBy(c => Source.Utils.BuildRarity(c.Rarity)).ThenBy(c => c.Type).ToList();
-                Image.Collage(data.Select(c => c.Canvas).ToArray(), type);
+                Image.Collage(data.OrderBy(c => c.Rarity).ThenBy(c => c.Name).Select(c => c.Canvas).ToArray(), type);
             }
 
             List<string> sets = CosmeticsData.Where(c => !string.IsNullOrEmpty(c.Set)).Select(c => c.Set).ToList();
@@ -173,13 +171,10 @@ namespace UpdateNight
             foreach (string set in sets)
             {
                 List<Cosmetic> data = CosmeticsData.Where(c => c.Set == set).ToList();
-                data = data.OrderBy(c => c.Name).ThenBy(c => c.Rarity)
-                            .ThenBy(c => Source.Utils.BuildRarity(c.Rarity)).ThenBy(c => c.Type).ToList();
-                Image.Collage(data.Select(c => c.Canvas).ToArray(), set);
-            } */
+                Image.Collage(data.OrderBy(c => c.Rarity).ThenBy(c => c.Name).Select(c => c.Canvas).ToArray(), set);
+            }
 
-            Image.Collage(CosmeticsData.OrderBy(c => c.Name).ThenBy(c => Utils.BuildRarity(c.Rarity))
-                .Select(c => c.Canvas).ToArray(), "All");
+            Image.Collage(CosmeticsData.OrderBy(c => c.Rarity).ThenBy(c => c.Name).Select(c => c.Canvas).ToArray(), "All");
 
             Console.WriteLine();
 

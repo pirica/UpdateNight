@@ -123,16 +123,17 @@ namespace UpdateNight.Source.Models
                         var hasset = Toc.GetAsset(heropaath);
 
                         if (hasset != null)
-                        {
-                            IUExport hexport = hasset.Exports[0];
+                            foreach (var hexport in hasset.Exports)
+                            {
+                                if (hexport.GetExport<SoftObjectProperty>("DisplayAssetPath") is { } hdpath)
+                                    ImagePath = hdpath.Value.AssetPathName.String;
+                                else if (hexport.GetExport<SoftObjectProperty>("LargePreviewImage") is { } hlpath)
+                                    ImagePath = hlpath.Value.AssetPathName.String;
+                                else if (export.GetExport<SoftObjectProperty>("SmallPreviewImage") is { } hspath)
+                                    ImagePath = hspath.Value.AssetPathName.String;
 
-                            if (hexport.GetExport<SoftObjectProperty>("DisplayAssetPath") is { } hdpath)
-                                ImagePath = hdpath.Value.AssetPathName.String;
-                            else if (hexport.GetExport<SoftObjectProperty>("LargePreviewImage") is { } hlpath)
-                                ImagePath = hlpath.Value.AssetPathName.String;
-                            else if (export.GetExport<SoftObjectProperty>("SmallPreviewImage") is { } hspath)
-                                ImagePath = hspath.Value.AssetPathName.String;
-                        }
+                                if (!string.IsNullOrEmpty(ImagePath)) break;
+                            }
                     }
                 }
             }

@@ -40,9 +40,21 @@ The `deviceauth.json` should look like the following
 ## TODO
 
 - Optimize code
+- Fix challenges rewards
 - Add :
 - - Consumables
 - - BattlePass
 - Maybe Add (aka low priority) :
 - - XP Coins in map
 - - NPC Locations and quests
+
+## Libraries
+
+Update Night uses the following libraries
+
+- [EpicManifestParser](https://github.com/NotOfficer/EpicManifestParser)
+- [K4os.Compression.LZ4](https://github.com/MiloszKrajewski/K4os.Compression.LZ4)
+- [Newtonsoft.Json](https://github.com/JamesNK/Newtonsoft.Json)
+- [SkiaSharp](https://github.com/mono/SkiaSharp)
+- [Usmap.NET](https://github.com/NotOfficer/Usmap.NET)
+- [PakReader](https://github.com/iAmAsval/FModel/tree/master/FModel/PakReader)

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UpdateNight.TocReader.IO;
 using EpicManifestParser.Objects;
-using UpdateNight.Source;
+using UpdateNight.Source.Utils;
 using UpdateNight.TocReader;
 using System.Threading.Tasks;
 
@@ -42,7 +42,9 @@ namespace UpdateNight.Grabbers
 
                 if (ioStore.IsEncrypted && Aes.Keys.TryGetValue(ioStore.TocResource.Header.EncryptionKeyGuid.Hex, out string key)) ioStore.AesKey = key.ToUpperInvariant().Trim().ToBytesKey();
 
-                if (!ioStore.IsEncrypted || (ioStore.IsEncrypted && ioStore.AesKey != null))
+                bool skipped = ioStore.IsEncrypted && ioStore.AesKey == null;
+
+                if (!skipped)
                 {
                     ioStore.ReadDirectoryIndex();
                     Global.IoFiles.Add(utoc.Name.Replace(".utoc", ""), ioStore);
@@ -54,12 +56,12 @@ namespace UpdateNight.Grabbers
                 Console.Write($"[{Global.BuildTime()}] ");
                 Console.ForegroundColor = ConsoleColor.Green;
                 Console.Write("[Toc Grabber] ");
-                Console.ForegroundColor = ConsoleColor.White;
-                Console.Write(ioStore.IsEncrypted && ioStore.AesKey == null ? "Skipped " : "Mounted ");
+                Console.ForegroundColor = skipped ? ConsoleColor.Yellow : ConsoleColor.White;
+                Console.Write(skipped ? "Skipped " : "Mounted ");
                 Console.ForegroundColor = ConsoleColor.Cyan;
                 Console.Write(file.Replace("FortniteGame/Content/Paks/", ""));
                 Console.ForegroundColor = ConsoleColor.White;
-                if (ioStore.IsEncrypted && ioStore.AesKey == null)
+                if (skipped)
                 {
                     Console.Write(", No key provided - [Version: ");
                     Console.ForegroundColor = ConsoleColor.Magenta;

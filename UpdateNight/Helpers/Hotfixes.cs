@@ -31,8 +31,9 @@ namespace UpdateNight.Helpers
                 throw new UpdateNightException($"Request cloudstorage failed with {(int)response.StatusCode} status code");
 
             string data = await response.Content.ReadAsStringAsync();
-            IniResponse[] inis = JsonConvert.DeserializeObject<IniResponse[]>(data);
+            List<IniResponse> inis = JsonConvert.DeserializeObject<List<IniResponse>>(data);
 
+            inis = inis.OrderByDescending(f => f.Name).ToList();
             var id = inis.FirstOrDefault(f => f.Name.Contains("_DefaultGame.ini")).Uid;
 
             using HttpRequestMessage requesta = new HttpRequestMessage(HttpMethod.Get, "https://fortnite-public-service-prod11.ol.epicgames.com/fortnite/api/cloudstorage/system/" + id);
@@ -42,7 +43,7 @@ namespace UpdateNight.Helpers
                 throw new UpdateNightException($"Request cloudstorage file failed with {(int)responsea.StatusCode} status code");
 
             string content = await responsea.Content.ReadAsStringAsync();
-            
+
             // https://stackoverflow.com/a/1879470 i love you stackoverflow
             var stream = new MemoryStream();
             var writer = new StreamWriter(stream);
@@ -56,7 +57,7 @@ namespace UpdateNight.Helpers
 
             // TODO: add other things but sets, for like challenges and stuff
             Dictionary<string, string> sets = new Dictionary<string, string>();
-            
+
             while (!reader.EndOfStream)
             {
                 if (ended) continue;
@@ -76,7 +77,9 @@ namespace UpdateNight.Helpers
                 var o = ParseLine(line);
                 var parsed = JsonConvert.DeserializeObject<ParsedLine>(o.ToString());
                 var text = parsed.TextReplacement;
-                sets.Add(text.Key, text.LocalizedStrings.English);
+
+                if (!sets.ContainsKey(text.Key)) // like, wtf epic
+                    sets.Add(text.Key, text.LocalizedStrings.English);
             }
 
             return sets;
@@ -119,7 +122,7 @@ namespace UpdateNight.Helpers
                         valuea = ParseLine(valuea);
                     }
                     else if (valuea.StartsWith("\"")) valuea = valuea.Replace("\"", "");
-                    
+
                     oa[keya] = valuea;
                 }
 
