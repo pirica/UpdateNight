@@ -207,7 +207,7 @@ namespace UpdateNight.Source.Models
                 foreach (SoftObjectProperty questPath in careerQuestBitShifts.Value)
                 {
                     string p = questPath.Value.AssetPathName.String.Replace("/Game", "/FortniteGame/Content").Split(".").First();
-                    
+
                     IoPackage asset = Toc.GetAsset(p);
                     if (asset == null)
                     {
@@ -217,7 +217,7 @@ namespace UpdateNight.Source.Models
 
                     Quests.Add(new Quest(asset, p));
                 }
-            
+
             else Global.Print(ConsoleColor.Red, "Error", $"Somehow {Id} doesnt have any challenges");
         }
     }
@@ -251,15 +251,19 @@ namespace UpdateNight.Source.Models
             if (export.GetExport<ObjectProperty>("RewardsTable") is { } rewardst)
                 rpath = rewardst.Value.Resource.OuterIndex.Resource.ObjectName.String;
 
-            else if (export.GetExport<ArrayProperty>("Rewards") is ArrayProperty rewards) // more ugly code
+            else if (export.GetExport<ArrayProperty>("Rewards") is ArrayProperty rewards) // uglier code
                 if (rewards.Value.First() is StructProperty reward)
                     if (reward.Value is UObject r && r.GetExport<StructProperty>("ItemPrimaryAssetId") is { } re &&
                         re.Value is UObject rew && rew.GetExport<NameProperty>("PrimaryAssetName") is { } rewa)
-                        if (Global.assetmapping.Any(f => f.Key.EndsWith(rewa.Value.String)))
+                        if (rewa.Value.String == "MtxGiveaway")
+                            Reward = new Reward(
+                                (string.Format("{0:n0}", r.GetExport<IntProperty>("Quantity").Value) + " VBucks"),
+                                "/FortniteGame/Content/UI/Foundation/Textures/Icons/Items/T-Items-MTX");
+                        else if (Global.assetmapping.Any(f => f.Key.EndsWith(rewa.Value.String)))
                             rpath = Global.assetmapping.FirstOrDefault(f => f.Key.EndsWith(rewa.Value.String)).Key;
 
-            if (string.IsNullOrEmpty(rpath)) Reward = new Reward();
-            else
+            if (Reward == null && string.IsNullOrEmpty(rpath)) Reward = new Reward();
+            else if (Reward == null)
             {
                 IoPackage asset = Toc.GetAsset(rpath);
                 if (asset == null)
@@ -288,10 +292,14 @@ namespace UpdateNight.Source.Models
         public SKImage Icon { get; set; }
         private bool ForceQuestionMark { get; set; }
 
-        public Reward()
+        public Reward(string text = "???", string imagepath = "")
         {
-            Text = "???";
-            ForceQuestionMark = true;
+            if (!string.IsNullOrEmpty(text)) Text = text;
+            else Text = "???";
+
+            if (!string.IsNullOrEmpty(imagepath)) ImagePath = imagepath;
+            else ForceQuestionMark = true;
+
             GetImage();
         }
 
@@ -300,9 +308,7 @@ namespace UpdateNight.Source.Models
             Id = path.Split("/").Last();
             Path = path;
 
-            UDataTable export = data.GetExport<UDataTable>();
-
-            if (export.GetExport<UObject>("Default") is { } d)
+            if (data.GetExport<UDataTable>().GetExport<UObject>("Default") is { } d)
             {
                 if (d.GetExport<IntProperty>("Quantity") is { } q)
                     Text = string.Format("{0:n0}", q.Value);
@@ -325,6 +331,18 @@ namespace UpdateNight.Source.Models
                             Text += tip.Replace("AccountResource:athena", "");
                             break;
                     }
+            }
+            else
+            {
+                IUExport export = data.Exports[0];
+
+                if (export.GetExport<TextProperty>("DisplayName") is { } n && n.Value is { } nt && nt.Text is FTextHistory.Base nb)
+                    Text += nb.SourceString;
+
+                if (export.GetExport<SoftObjectProperty>("LargePreviewImage") is { } lpath)
+                    ImagePath = lpath.Value.AssetPathName.String;
+                else if (export.GetExport<SoftObjectProperty>("SmallPreviewImage") is { } spath)
+                    ImagePath = spath.Value.AssetPathName.String;
             }
 
             if (string.IsNullOrEmpty(Text)) Text = "???";
@@ -386,7 +404,7 @@ namespace UpdateNight.Source.Models
             Path = path;
 
             IUExport export = data.Exports[0];
-            
+
             if (export.GetExport<TextProperty>("DisplayName") is { } n && n.Value is { } nt && nt.Text is FTextHistory.Base nb)
                 Name = nb.SourceString.Replace("<Emphasized>", "").Replace("</>", "");
 
@@ -395,14 +413,14 @@ namespace UpdateNight.Source.Models
 
             if (export.GetExport<TextProperty>("ShortDescription") is { } t && t.Value is { } tt && tt.Text is FTextHistory.Base tb)
                 Type = tb.SourceString.Replace("<Emphasized>", "").Replace("</>", "");
-            
+
             if (export.GetExport<ObjectProperty>("Series") is { } series)
                 Rarity = series.Value.Resource.ObjectName.String;
             else if (export.GetExport<EnumProperty>("Rarity") is { } rarity)
                 Rarity = rarity.Value.String.Replace("EFortRarity::", "");
             else
                 Rarity = "Uncommon";
-            
+
             if (export.GetExport<SoftObjectProperty>("DisplayAssetPath") is { } dpath)
                 ImagePath = dpath.Value.AssetPathName.String;
             else if (export.GetExport<SoftObjectProperty>("LargePreviewImage") is { } lpath)
@@ -417,7 +435,7 @@ namespace UpdateNight.Source.Models
                 string tempFix =
                     $"/FortniteGame/Plugins/GameFeatures/{enumerable.ElementAt(1)}/Content/{pain.Split("/")[2]}/{pain.Split("/")[3]}/{pain.Split("/")[4]}";
                 ImagePath = tempFix.Split(".")[0];
-                
+
                 // I DON'T ANOTHER WAY TO DO IT BUT IT WORKS.
 
             }
@@ -465,7 +483,7 @@ namespace UpdateNight.Source.Models
         public float Y { get; set; }
 
         public string Tag { get; set; }
-        public bool IsBigPoi { get; set; } // dont know the name so lets call a big poi 
+        public bool IsBigPoi { get; set; } // dont know the name so lets call a big poi
         public List<string> CalendarEventsRequired { get; set; }
 
         public POI(UObject data)
@@ -480,7 +498,7 @@ namespace UpdateNight.Source.Models
 
             IsBigPoi = false;
             if (!string.IsNullOrEmpty(Tag)) IsBigPoi = !Tag.ToLower().Contains("unnamedpoi");
-            
+
             X = 0;
             Y = 0;
             int WorldRadius = 135000;

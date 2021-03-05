@@ -40,7 +40,6 @@ The `deviceauth.json` should look like the following
 ## TODO
 
 - Optimize code
-- Fix challenges rewards
 - Add :
 - - Consumables
 - - BattlePass
