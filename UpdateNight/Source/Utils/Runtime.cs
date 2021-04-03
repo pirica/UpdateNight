@@ -25,7 +25,7 @@ namespace UpdateNight.Source.Utils
         public static UNRuntime GetRuntimeByVersion(string version)
         {
             DirectoryInfo directory = new DirectoryInfo(RuntimeFolder);
-            FileInfo[] files = directory.GetFiles();
+            FileInfo[] files = directory.GetFiles("*.unrtm");
 
             string path = null;
             for (int i = 0; i < files.Length; i++)
@@ -108,7 +108,7 @@ namespace UpdateNight.Source.Utils
                 runtime.Version = reader.ReadInt32();
                 runtime.UNVersion = reader.ReadString();
                 runtime.FNVersion = reader.ReadString();
-                runtime.Date = reader.ReadInt64();
+                runtime.Date = long.Parse(reader.ReadString());
 
                 var count = reader.ReadInt32();
                 runtime.FileCount = count;

@@ -17,6 +17,15 @@ namespace UpdateNight.Source.Utils
 
             List<string> CurrentFiles = BuildFileList();
             List<string> OldFiles = Force ? Runtime.GetLastRuntime().Files : Runtime.GetRuntimeByVersion(old_version).Files;
+
+            for (int i = 0; i < OldFiles.Count; i++)
+                if (OldFiles[i].StartsWith("/FortniteGame/Content/Athena/Items/Cosmetics/BackPacks/"))
+                    OldFiles[i] = OldFiles[i].Replace("BackPacks", "Backpacks");
+
+            for (int i = 0; i < CurrentFiles.Count; i++)
+                if (CurrentFiles[i].StartsWith("/FortniteGame/Content/Athena/Items/Cosmetics/BackPacks/"))
+                    CurrentFiles[i] = OldFiles[i].Replace("BackPacks", "Backpacks");
+
             List<string> NewFiles = DiffFiles(OldFiles, CurrentFiles);
 
             DateTime End = DateTime.UtcNow;
