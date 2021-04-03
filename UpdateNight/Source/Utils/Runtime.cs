@@ -9,7 +9,7 @@ using K4os.Compression.LZ4.Streams;
 
 namespace UpdateNight.Source.Utils
 {
-    class Runtime
+    public class Runtime
     {
         private static readonly string RuntimeFolder = Directory.CreateDirectory(Path.Combine(Global.CurrentPath, "Runtimes")).FullName;
 
@@ -28,20 +28,18 @@ namespace UpdateNight.Source.Utils
             FileInfo[] files = directory.GetFiles();
 
             string path = null;
-            var i = 0;
-            while (i < files.Length)
+            for (int i = 0; i < files.Length; i++)
             {
                 var runtime = UNRuntime.Read(files[i].Name, false);
-                if (runtime.BuildVersion.Substring(19, 5) == version)
+                if (runtime.FNVersion.Substring(19, 5) == version)
                 {
                     path = files[i].Name;
                     break;
                 }
-                i++;
             }
 
             if (string.IsNullOrEmpty(path))
-                throw new RuntimeNotFoundException("Could not find previous runtime to compare");
+                throw new RuntimeNotFoundException($"Could not find runtime for version {version}");
 
             return UNRuntime.Read(path);
         }
@@ -52,9 +50,10 @@ namespace UpdateNight.Source.Utils
 
             var runtime = new UNRuntime
             {
-                Version = Assembly.GetExecutingAssembly().GetName().Version.ToString(),
-                BuildVersion = Global.Version,
-                Date = DateTime.UtcNow,
+                Version = 1,
+                UNVersion = Assembly.GetExecutingAssembly().GetName().Version.ToString(),
+                FNVersion = Global.Version,
+                Date = DateTimeOffset.Now.ToUnixTimeSeconds(),
                 Files = Files.BuildFileList()
             };
 
@@ -65,9 +64,11 @@ namespace UpdateNight.Source.Utils
 
         public class UNRuntime
         {
-            public string Version { get; set; } // un version
-            public string BuildVersion { get; set; } // fn version
-            public DateTime Date { get; set; } // date
+            public int Version { get; set; } // runtime version
+            public string UNVersion { get; set; } // un version
+            public string FNVersion { get; set; } // fn version
+            public long Date { get; set; } // date
+            public int FileCount { get; set; } // file list
             public List<string> Files { get; set; } // file list
 
             public void Save(string filename)
@@ -78,8 +79,9 @@ namespace UpdateNight.Source.Utils
 
                 writer.Write(0x49B13E0C); // magic
                 writer.Write(Version);
-                writer.Write(BuildVersion);
-                writer.Write(Date.ToString());
+                writer.Write(UNVersion);
+                writer.Write(FNVersion);
+                writer.Write(Date);
 
                 writer.Write(Files.Count);
                 foreach (var path in Files)
@@ -97,20 +99,23 @@ namespace UpdateNight.Source.Utils
                 BinaryReader reader = new BinaryReader(dstream);
 
                 var runtime = new UNRuntime();
+
                 var magic = reader.ReadInt32();
 
                 if (magic != 0x49B13E0C)
                     throw new InvalidRuntimeException("[Magic Missmatch] Runtime magic missmatch with update nigth runtime magic");
 
-                runtime.Version = reader.ReadString();
-                runtime.BuildVersion = reader.ReadString();
-                runtime.Date = DateTime.Parse(reader.ReadString());
-                
+                runtime.Version = reader.ReadInt32();
+                runtime.UNVersion = reader.ReadString();
+                runtime.FNVersion = reader.ReadString();
+                runtime.Date = reader.ReadInt64();
+
+                var count = reader.ReadInt32();
+                runtime.FileCount = count;
                 runtime.Files = new List<string>();
 
                 if (readFiles)
                 {
-                    var count = reader.ReadInt32();
                     var i = 0;
                     while (i < count)
                     {
