@@ -31,7 +31,7 @@ namespace UpdateNight.Helpers
 
                 })
             };
-            request.Headers.Add("Authorization", "basic MzQ0NmNkNzI2OTRjNGE0NDg1ZDgxYjc3YWRiYjIxNDE6OTIwOWQ0YTVlMjVhNDU3ZmI5YjA3NDg5ZDMxM2I0MWE=");
+            request.Headers.Add("Authorization", "basic NTIyOWRjZDNhYzM4NDUyMDhiNDk2NjQ5MDkyZjI1MWI6ZTNiZDJkM2UtYmY4Yy00ODU3LTllN2QtZjNkOTQ3ZDIyMGM3=");
             using var response = await Client.SendAsync(request).ConfigureAwait(false);
 
             string data = await response.Content.ReadAsStringAsync();
