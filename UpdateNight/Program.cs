@@ -90,8 +90,7 @@ namespace UpdateNight
                     Console.Write(Global.Version);
                     Console.ForegroundColor = ConsoleColor.White;
                     Console.WriteLine();
-                    Grabbers.MappingsGrabber.mapping = mapping;
-                    await Grabbers.MappingsGrabber.Grab();
+                    await Grabbers.MappingsGrabber.Grab(mapping);
                 }
                 if (!newMapping) Thread.Sleep(1000);
             }

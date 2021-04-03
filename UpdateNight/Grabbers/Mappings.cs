@@ -1,6 +1,8 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using UpdateNight.Exceptions;
@@ -10,24 +12,36 @@ namespace UpdateNight.Grabbers
 {
     class MappingsGrabber
     {
-        public static Mapping[] mapingsinfo = null;
-        public static Mapping mapping = null;
         private static readonly HttpClient Client = new HttpClient();
 
         public static async Task<Mapping[]> GrabInfo()
         {
-            using HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, "https://benbotfn.tk/api/v1/mappings");
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, "https://benbotfn.tk/api/v1/mappings");
             HttpResponseMessage response = await Client.SendAsync(request).ConfigureAwait(false);
             if (response.StatusCode != HttpStatusCode.OK)
-                throw new UpdateNightException($"Request Failed With {(int) response.StatusCode}, benbot seems to be down");
+            {
+                int _try = 0;
+                Global.Print(ConsoleColor.Yellow, "Mappings Grabber~Warn", $"Request failed with status {(int)response.StatusCode}");
+
+                while (response.StatusCode != HttpStatusCode.OK)
+                {
+                    Global.Print(ConsoleColor.Yellow, "Mappings Grabber~Warn", $"Retrying to get mappings (attempt #{_try})");
+                    response = await Client.SendAsync(request).ConfigureAwait(false);
+
+                    _try++;
+                    if (_try > 100)
+                        throw new UpdateNightException($"Tried to grab mappings {_try} times but benbot seems to be down");
+
+                    Thread.Sleep(1500); // 1.5 second
+                }
+            }
 
             string data = await response.Content.ReadAsStringAsync();
             Mapping[] res = JsonConvert.DeserializeObject<Mapping[]>(data);
-            mapingsinfo = res;
             return res;
         }
 
-        public static async Task Grab()
+        public static async Task Grab(Mapping mapping)
         {
             byte[] buffer = await Client.GetByteArrayAsync(mapping.Url).ConfigureAwait(false);
 
