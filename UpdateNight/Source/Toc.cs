@@ -1,5 +1,6 @@
 ﻿using UpdateNight.TocReader.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace UpdateNight.Source
 {
@@ -10,7 +11,10 @@ namespace UpdateNight.Source
             path = path.Split(".").First();
 
             if (path.StartsWith("/Game/"))
-                path = path.Replace("/Game", "/FortniteGame/Content");
+            {
+                var regex = new Regex(Regex.Escape("/Game"));
+                path = regex.Replace(path, "/FortniteGame/Content", 1);
+            }
             else if (!path.StartsWith("/FortniteGame/"))
             {
                 var split = path.Split("/").ToList();

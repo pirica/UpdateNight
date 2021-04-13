@@ -12,7 +12,7 @@ namespace UpdateNight.TocReader.Parsers
         public abstract FNameEntrySerialized[] NameMap { get; }
         public abstract IUExport[] DataExports { get; }
         public abstract FName[] DataExportTypes { get; }
-        
+         
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public FName ReadFName()

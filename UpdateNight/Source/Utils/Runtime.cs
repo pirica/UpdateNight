@@ -50,7 +50,7 @@ namespace UpdateNight.Source.Utils
 
             var runtime = new UNRuntime
             {
-                Version = 1,
+                Version = 2,
                 UNVersion = Assembly.GetExecutingAssembly().GetName().Version.ToString(),
                 FNVersion = Global.Version,
                 Date = DateTimeOffset.Now.ToUnixTimeSeconds(),
@@ -81,7 +81,7 @@ namespace UpdateNight.Source.Utils
                 writer.Write(Version);
                 writer.Write(UNVersion);
                 writer.Write(FNVersion);
-                writer.Write(Date);
+                writer.Write(Date.ToString());
 
                 writer.Write(Files.Count);
                 foreach (var path in Files)
@@ -108,7 +108,11 @@ namespace UpdateNight.Source.Utils
                 runtime.Version = reader.ReadInt32();
                 runtime.UNVersion = reader.ReadString();
                 runtime.FNVersion = reader.ReadString();
-                runtime.Date = long.Parse(reader.ReadString());
+
+                if (runtime.Version == 1)
+                    runtime.Date = reader.ReadInt64();
+                else
+                    runtime.Date = long.Parse(reader.ReadString());
 
                 var count = reader.ReadInt32();
                 runtime.FileCount = count;
