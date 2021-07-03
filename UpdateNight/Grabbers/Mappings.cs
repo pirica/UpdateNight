@@ -16,7 +16,7 @@ namespace UpdateNight.Grabbers
 
         public static async Task<Mapping[]> GrabInfo()
         {
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, "https://benbotfn.tk/api/v1/mappings");
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, "https://benbot.app/api/v1/mappings");
             HttpResponseMessage response = await Client.SendAsync(request).ConfigureAwait(false);
             if (response.StatusCode != HttpStatusCode.OK)
             {
