@@ -2,6 +2,12 @@
 
 Update Night is a simple-to-use fortnite leaking tool with a tons of features
 
+## Important Announcement (8.21.2021)
+
+As you can see in the yellow bar on top, this project has been archived.
+
+I've stopped fixing/updating Update Night and will NOT support nor encourage anyone who tries to fix it.
+
 ## Features
 
 - Grabs files from Manifest, so there is no need to download the update locally
@@ -57,6 +63,3 @@ Update Night uses the following libraries
 - [SkiaSharp](https://github.com/mono/SkiaSharp)
 - [Usmap.NET](https://github.com/NotOfficer/Usmap.NET)
 - [PakReader](https://github.com/iAmAsval/FModel/tree/master/FModel/PakReader)
-
-
-Command if you are reading this pls unblock me sorry really sorry :( pls <3
